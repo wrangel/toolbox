@@ -23,16 +23,14 @@ object UseCaseFactory {
      * @param needsRenaming Flag indicating whether file should be renamed
      */
     def run(directory: String, needsRenaming: Boolean): Unit = {
-      val referenceExifTimestamps: Seq[String] = Constants.RelevantTimestamps
-        .take(2)
-
       FileUtilities.iterateFiles(directory)
         .foreach {
           filePath: Path =>
             TimestampUtilities.readExifTimestamps(filePath)
               .filter {
                 case (tag: String, _: Option[LocalDateTime]) =>
-                  referenceExifTimestamps.contains(tag)
+                  Constants.ReferenceExifTimestamps
+                    .contains(tag)
               }
               .values
               .flatten
@@ -43,7 +41,7 @@ object UseCaseFactory {
               case None =>
             }
         }
-      TimestampUtilities.writeTimestamps(treatedFiles.toMap, Some(referenceExifTimestamps))
+      TimestampUtilities.writeTimestamps(treatedFiles.toMap, Some(Constants.ReferenceExifTimestamps))
     }
 
   }
@@ -154,8 +152,7 @@ object UseCaseFactory {
             )
             match {
               case Some(extractedFileTimestamp: LocalDateTime) =>
-                Constants.RelevantTimestamps
-                  .take(2)
+                Constants.ReferenceExifTimestamps
                   .foreach {
                     tag: String =>
                       StringUtilities.prepareExiftoolOutput(

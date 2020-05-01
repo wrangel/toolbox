@@ -7,16 +7,15 @@ import scala.util.matching.Regex
 /* Holds project wide constants */
 object Constants {
 
-  /* Collection of relevant timestamps within exiftool timestamp collection */
-  final val RelevantTimestamps: Seq[String] = Seq(
+  /* Collection of reference exif timestamps */
+  final val ReferenceExifTimestamps: Seq[String] = Seq(
     "DateTimeOriginal",
-    "CreateDate",
-    "ModifyDate",
-    "%SB",
-    "%Sm"
+    "CreateDate"
   )
 
-  /* Conversion from full name to setfile identifier */
+  /** Reference exif  */
+
+  /* Conversion from full name to setFile identifier */
   final val MacOsTimestampTags: Map[String, Seq[String]] = Map(
     "create" -> Seq("d"),
     "modify" -> Seq("m")

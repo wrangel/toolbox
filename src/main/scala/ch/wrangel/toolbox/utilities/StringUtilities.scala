@@ -40,8 +40,7 @@ object StringUtilities {
    * @return Mapping from file [[Path]] to the file's exif timestamp tags
    */
   def getAllExifTimestampTags(filePath: Path): (Path, Seq[String]) = {
-    filePath -> Constants.RelevantTimestamps
-      .take(2)
+    filePath -> Constants.ReferenceExifTimestamps
       .concat(
         prepareExiftoolOutput(s"""${Constants.ExiftoolBinary} -time:all -m -s "$filePath"""")
           .map(_.head)
