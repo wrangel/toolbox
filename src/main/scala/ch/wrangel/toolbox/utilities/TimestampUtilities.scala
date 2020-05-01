@@ -15,13 +15,13 @@ import scala.util.{Failure, Success, Try}
 object TimestampUtilities {
 
   /** Adjusts both Mac OS and exif timestamps
-   * Two rounds of mac timestamp rewritings are needed
    *
    * @param fileToDateMap [[Map]] from file [[Path]] to the file's [[LocalDateTime]]
+   * @param excludedExifTags Optional [[Seq]] of exif timestamps which should not be written. Default is None
    */
-  def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime]): Unit = {
+  def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime], excludedExifTags: Option[Seq[String]] = None): Unit = {
     if (fileToDateMap.nonEmpty) {
-      writeExifTimestamps(fileToDateMap)
+      writeExifTimestamps(fileToDateMap, excludedExifTags)
       writeMacTimestamps(fileToDateMap)
     }
   }
@@ -54,11 +54,24 @@ object TimestampUtilities {
   /** Newly writes exif timestamps
    *
    * @param fileNameToTimestampMap [[Map]] containing the file [[Path]] as well as the file's [[LocalDateTime]]
+   * @param optionalExcludedExifTags Optional [[Seq]] of exif timestamps which should not be written. Default is None
    */
-  private def writeExifTimestamps(fileNameToTimestampMap: Map[Path, LocalDateTime]): Unit = {
+  private def writeExifTimestamps(
+                                   fileNameToTimestampMap: Map[Path, LocalDateTime],
+                                   optionalExcludedExifTags: Option[Seq[String]] = None
+                                 ): Unit = {
     fileNameToTimestampMap.foreach {
       case (filePath: Path, ldt: LocalDateTime) =>
         StringUtilities.getAllExifTimestampTags(filePath)._2
+          .filter {
+            exifTag: String =>
+              optionalExcludedExifTags match {
+                case Some(excludedExifTags: Seq[String]) =>
+                  !excludedExifTags.contains(exifTag)
+                case None =>
+                  true
+              }
+          }
           .map {
             exifTag: String =>
               val newDate: String = ldt.format(Constants.TimestampFormatters("exif"))

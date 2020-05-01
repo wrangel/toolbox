@@ -1,9 +1,11 @@
 package ch.wrangel.toolbox.utilities
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{Files, Path, Paths}
 import java.time.LocalDateTime
 
 import ch.wrangel.toolbox.Constants
+
+import scala.collection.mutable.ListBuffer
 
 
 /* Utilities for miscellaneous functionality */
@@ -50,6 +52,24 @@ object MiscUtilities {
             StringUtilities.cleanCommand(s"rm $filePath")
           }
       }
+  }
+
+  /** Checks for zero byte size files
+   *
+   * @param directory [[String]] representation of directory path
+   */
+  def checkForZeroByteLengthFiles(directory: String): Unit = {
+    val zeroByteFiles: ListBuffer[String] = new ListBuffer[String]()
+    FileUtilities.iterateFiles(directory)
+      .foreach {
+        filePath: Path =>
+          if (Files.size(filePath) == 0) {
+            zeroByteFiles += filePath.toString
+            println(s"Please remove $filePath, since it has byte size of 0")
+          }
+      }
+    if (zeroByteFiles.nonEmpty)
+      System.exit(0)
   }
 
 }
