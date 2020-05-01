@@ -4,15 +4,23 @@ import scala.util.Try
 
 /** Entry point to a set of use case driven manipulation methods
  *
- * Typical procedure will be:
- * - exif
- * - file
- * - potentialExif
- * - (validate)
- *
  * Example arguments:
  * <PathToYourFiles> file false
  * <PathToYourFiles> exif true
+ *
+ * Typical procedure will be:
+ * - 1) exif:
+ *      To apply a valid DateTimeOriginal / CreateDate to file name,
+ *      mac timestamps, and the rest of the exif timestamps
+ * - 2) file
+ *      To detect a valid timestamp in the file name and apply them to file name,
+ *      mac timestamps, and exif timestamps
+ * - 3) potentialExif
+ *      To detect potentially valid exif dates outside DateTimeOriginal / CreateDate, ask for user's choice,
+ *      and and apply them to file name, mac timestamps, and the rest of the exif timestamps
+ * - 4) validate
+ *      To check if the timestamp in file name and DateTimeOriginal / Create Date coincide. Move to sub folder
+ *      "_unsuccessful" otherwise
  *
  * TODO picture
  *- detect partial dates (impute random days and day time)
