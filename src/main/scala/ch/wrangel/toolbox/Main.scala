@@ -2,17 +2,18 @@ package ch.wrangel.toolbox
 
 import scala.util.Try
 
-/** Entry point to a set of use case driven manipulation methods
+/** Command line tool to synchronize photo file names, exif and mac timestamps
  *
  * Example arguments:
- * <PathToYourFiles> file false
- * <PathToYourFiles> exif true
+ * <PathToFiles> file false
+ * <PathToFiles> exif true
+ * <PathToFiles> validate
  *
  * Typical procedure will be:
- * - 1) exif:
+ * - 1) exif    -- YELLOW tag --
  *      To apply a valid DateTimeOriginal / CreateDate to file name,
  *      mac timestamps, and the rest of the exif timestamps
- * - 2) file
+ * - 2) file    -- GREY tag --
  *      To detect a valid timestamp in the file name and apply them to file name,
  *      mac timestamps, and exif timestamps
  * - 3) potentialExif

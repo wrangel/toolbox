@@ -118,8 +118,8 @@ object UseCaseFactory {
           case (filePath: Path, ldt: LocalDateTime) =>
             treatedFiles += MiscUtilities.prepareFile(filePath, ldt, needsRenaming = needsRenaming)
         }
-      Try {TimestampUtilities.writeTimestamps(treatedFiles.toMap)} ////
-      Validate.run(directory, needsRenaming)
+      TimestampUtilities.writeTimestamps(treatedFiles.toMap)
+      Validate.run(directory)
     }
 
   }
@@ -134,7 +134,7 @@ object UseCaseFactory {
      * @param directory     [[String]] representation of directory path
      * @param needsRenaming Flag indicating whether file should be renamed
      */
-    def run(directory: String, needsRenaming: Boolean): Unit = {
+    def run(directory: String, needsRenaming: Boolean = false): Unit = {
       FileUtilities.iterateFiles(directory)
         .foreach {
           filePath: Path =>

@@ -74,6 +74,6 @@ object Constants {
   final val FfmpegBinary: String = "/usr/local/bin/ffmpeg"
 
   /** folder name for files having undergone unsuccessful exif manipulation */
-  final val UnsuccessfulFolder: String = "_unsuccessful"
+  final val UnsuccessfulFolder: String = "_not_validated"
 
 }
