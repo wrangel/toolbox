@@ -86,7 +86,7 @@ object FileUtilities {
       case Success(output: String) =>
         println(s"$manipulationType: Successfully changed $tag of $filePath to $newDate")
       case Failure(t: Throwable) =>
-        println(s"===>>> NOT TREATED: $tag of $filePath")
+        println(s">>> NOT TREATED: $tag of $filePath")
     }
   }
 

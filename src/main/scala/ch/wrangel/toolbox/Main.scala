@@ -21,7 +21,7 @@ import scala.util.Try
  *      If you know an approximate or accurate date or event timestamp of your photo, and there are no accurate
  *      timestamps available for neither exif nor mac, then add the date / timestamp to your photo's name.
  *      The procedure takes it from there
- * - 3) potentialExif
+ * - 3) potentialExif -- ORANGE tag --
  *      To detect potentially valid exif dates outside DateTimeOriginal / CreateDate, ask for user's choice,
  *      and apply choice (if any) to file name, mac timestamps, and the rest of the exif timestamps
  * - 4) validate

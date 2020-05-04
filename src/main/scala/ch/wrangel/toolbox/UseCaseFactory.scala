@@ -46,10 +46,9 @@ object UseCaseFactory {
 
   }
 
-  /** Compares the parent folders name (which must constitute a valid integer) with all available
-   * exif timestamps. If there are exif timestamps with a year coinciding with the parent folder file,
-   * the user is asked to pick one or none of the timestamps. If some timestamp is chosen, the file is
-   * renamed accordingly, and exif and mac timestamps are rewritten */
+  /** Gets all the exif timestamps. The user is asked to pick one or none of the timestamps.
+   * If some timestamp is chosen, the file is renamed accordingly, and exif and mac timestamps are rewritten
+   */
   private object ExifAsPotentialReference extends UseCase {
 
     /** Runs the process
@@ -60,47 +59,35 @@ object UseCaseFactory {
     def run(directory: String, needsRenaming: Boolean): Unit = {
       Try {
         implicit val localDateOrdering: Ordering[LocalDateTime] = _ compareTo _
-        Paths.get(directory)
-          .getParent
-          .getFileName
-          .toString
-          .toInt
-      } match {
-        case Success(desiredYear: Int) =>
-          FileUtilities.iterateFiles(directory)
-            .foreach {
-              filePath: Path =>
-                val coincidingExifTimestamps: Seq[LocalDateTime] =
-                  TimestampUtilities.readExifTimestamps(filePath)
-                    .values
-                    .flatten
-                    .toSeq
-                    .filter(_.getYear == desiredYear)
-                    .sorted
-                if (coincidingExifTimestamps.nonEmpty) {
-                  val feedback: Int = StdIn.readLine(
-                    filePath + ":\n" +
-                      coincidingExifTimestamps.zipWithIndex.mkString("\n") +
-                      "\nNone of those: -1\n"
+        FileUtilities.iterateFiles(directory)
+          .foreach {
+            filePath: Path =>
+              val coincidingExifTimestamps: Seq[LocalDateTime] =
+                TimestampUtilities.readExifTimestamps(filePath)
+                  .values
+                  .flatten
+                  .toSeq
+                  .sorted
+              if (coincidingExifTimestamps.nonEmpty) {
+                val feedback: Int = StdIn.readLine(
+                  filePath + ":\n" +
+                    coincidingExifTimestamps.zipWithIndex.mkString("\n") +
+                    "\nNone of those: -1\n"
+                )
+                  .toInt
+                if (feedback > -1) {
+                  treatedFiles += MiscUtilities.prepareFile(
+                    filePath, coincidingExifTimestamps(feedback), needsRenaming = needsRenaming
                   )
-                    .toInt
-                  if (feedback > -1) {
-                    treatedFiles += MiscUtilities.prepareFile(
-                      filePath, coincidingExifTimestamps(feedback), needsRenaming = true
-                    )
-                  }
                 }
-                else
-                  println(s"No valid timestamps found for $filePath")
-            }
-        case Failure(t: Throwable) =>
-          println(s"Parent folder of $directory does not constitute a valid year integer")
-          throw t
+              }
+              else
+                println(s"No valid timestamps found for $filePath")
+          }
+        TimestampUtilities.writeTimestamps(treatedFiles.toMap)
+        Validate.run(directory, needsRenaming)
       }
-      TimestampUtilities.writeTimestamps(treatedFiles.toMap)
-      Validate.run(directory, needsRenaming)
     }
-
   }
 
   /* Renames files & changes mac & exif timestamp according to the valid timestamp detected in the file name */
