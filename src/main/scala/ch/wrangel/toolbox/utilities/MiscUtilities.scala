@@ -72,4 +72,17 @@ object MiscUtilities {
       System.exit(0)
   }
 
+  /** Splits a collection into multiple subsets, according to the [[Seq]] of indices provided
+   *
+   * @param splitPoints [[Seq]] of indices
+   * @param s [[String]] to split
+   * @param result [[ListBuffer]] containing the subsets
+   */
+  def splitCollection(splitPoints: Seq[Int], s: String, result: ListBuffer[String]): Unit = {
+    val (element, rest) = s.splitAt(splitPoints.head)
+    if(rest.nonEmpty)
+      splitCollection(splitPoints.tail, rest, result)
+    element +=: result
+  }
+
 }

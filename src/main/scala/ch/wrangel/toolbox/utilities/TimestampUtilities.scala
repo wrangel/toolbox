@@ -2,12 +2,12 @@ package ch.wrangel.toolbox.utilities
 
 import java.nio.file.{Files, Path}
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDateTime, LocalTime, ZonedDateTime}
+import java.time.{LocalDateTime, LocalTime, YearMonth, ZonedDateTime}
 
 import ch.wrangel.toolbox.Constants
 
-import scala.collection.immutable.ArraySeq
 import scala.collection.mutable.ListBuffer
+import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
 
@@ -180,10 +180,15 @@ object TimestampUtilities {
         case (filePath: Path, element: String) =>
           filePath -> {
             if (element.length > 8)
-              TimestampUtilities.convertStringToTimestamp(element, Constants.TimestampFormatters("file")).get
+              TimestampUtilities.convertStringToTimestamp(element, Constants.TimestampFormatters("file"))
             else
               addTimeToDate(filePath, element)
           }
+      }
+      .filter(_._2.isDefined)
+      .map {
+        case (filePath: Path, oldt: Option[LocalDateTime]) =>
+          filePath -> oldt.get
       }
       .toMap
   }
@@ -213,30 +218,23 @@ object TimestampUtilities {
    * @return Flag indicating whether candidate [[String]] is a valid timestamp / date
    */
   def isValidCandidate(candidate: String): Boolean = {
-    val slidedDigits = candidate.map(_.asDigit)
-      .sliding(2, 2)
-      .zipWithIndex
-      .toSeq
-    slidedDigits.map {
-      case (slide: ArraySeq[Int], idx: Int) =>
-        idx match {
-          case 0 =>
-            slide.concat(slidedDigits(idx + 1)._1)
-              .mkString
-              .toInt
-          case x if x > 1 =>
-            slide.mkString
-              .toInt
-          case _ =>
-            -1
-        }
-    }
-      .filter(_ != -1)
-      .zipWithIndex
+    val components: ListBuffer[String] = ListBuffer[String]()
+    MiscUtilities.splitCollection(Seq(4, 2, 2, 2, 2, 2), candidate, components)
+    val componentsInt: ListBuffer[Int] = components.map(_.toInt)
+    componentsInt.zipWithIndex
       .map {
         case (timestampElement: Int, idx: Int) =>
-          Constants.TimestampRanges(idx)
-            .contains(timestampElement)
+          idx match {
+            case 2 =>
+              Try {
+                (1 to YearMonth.of(componentsInt.head, componentsInt(1)).lengthOfMonth)
+                  .contains(timestampElement)
+              }
+                .getOrElse(false)
+            case _ =>
+              Constants.TimestampRanges(idx)
+                .contains(timestampElement)
+          }
       }
       .forall(_ == true)
   }
@@ -249,7 +247,7 @@ object TimestampUtilities {
    * @param date     [[String]] representation of a potentially valid date
    * @return Potentially valid [[LocalDateTime]]
    */
-  def addTimeToDate(filePath: Path, date: String): LocalDateTime = {
+  def addTimeToDate(filePath: Path, date: String): Option[LocalDateTime] = {
     val coincidingExifTimestamps: ListBuffer[LocalDateTime] = ListBuffer[LocalDateTime]()
     readExifTimestamps(filePath)
       .foreach {
@@ -269,11 +267,25 @@ object TimestampUtilities {
           }
       }
     Try {
-      coincidingExifTimestamps.min
+      Some(coincidingExifTimestamps.min)
     }
-      .getOrElse(
-        convertStringToTimestamp(date + Constants.DefaultTime, Constants.TimestampFormatters("file")).get
-      )
+      .getOrElse {
+        Try {
+          Some(convertStringToTimestamp(date + Constants.DefaultTime, Constants.TimestampFormatters("file")).get)
+        }
+          .getOrElse {
+            val feedback: String = StdIn.readLine(s"Is $date of $filePath a valid partial date (y or n)?\n")
+            feedback match {
+              case "y" =>
+                Some(
+                  convertStringToTimestamp(date + Constants.DefaultDay + Constants.DefaultTime,
+                    Constants.TimestampFormatters("file")).get
+                )
+              case _ =>
+                None
+            }
+          }
+      }
   }
 
 }

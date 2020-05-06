@@ -68,18 +68,16 @@ object UseCaseFactory {
                   .flatten
                   .toSeq
                   .sorted
+              val options: Seq[(LocalDateTime, Int)] = coincidingExifTimestamps.zipWithIndex
               if (coincidingExifTimestamps.nonEmpty) {
                 val feedback: Int = StdIn.readLine(
-                  filePath + ":\n" +
-                    coincidingExifTimestamps.zipWithIndex.mkString("\n") +
-                    "\nNone of those: -1\n"
+                  filePath + ":\n" + options.mkString("\n") + "\nNone of those: -1\n"
                 )
                   .toInt
-                if (feedback > -1) {
+                if (feedback > -1)
                   treatedFiles += MiscUtilities.prepareFile(
                     filePath, coincidingExifTimestamps(feedback), needsRenaming = needsRenaming
                   )
-                }
               }
               else
                 println(s"No valid timestamps found for $filePath")
@@ -88,6 +86,7 @@ object UseCaseFactory {
         Validate.run(directory, needsRenaming)
       }
     }
+
   }
 
   /* Renames files & changes mac & exif timestamp according to the valid timestamp detected in the file name */

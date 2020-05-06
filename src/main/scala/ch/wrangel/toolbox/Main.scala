@@ -28,11 +28,6 @@ import scala.util.Try
  *      To check if the timestamp in file name and DateTimeOriginal / Create Date coincide. Move to sub folder
  *      "_unsuccessful" otherwise
  *
- * TODO picture
- *- detect partial dates (impute random days and day time)
- * "[0-9]{4}[-,_,/,., ][0-9]{2}", // random? day of month imputation
- * "[0-9]{6}, // random? day of month imputation
- *
  * TODO video
  * Establish which create dates are used by photo programs - adapt "Validate" and create consistent framework
  * AVI (convert with ffmpeg, since exiftool cannot write tags)

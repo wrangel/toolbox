@@ -1,5 +1,6 @@
 package ch.wrangel.toolbox
 
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import scala.util.matching.Regex
@@ -43,22 +44,31 @@ object Constants {
     "[0-9]{14}",
     // Dates
     "[0-9]{4}[-,_,/,., ][0-9]{2}[-,_,/,., ][0-9]{2}",
-    "[0-9]{8}"
+    "[0-9]{8}" ,
+    // Partial dates (year and month known, imputation of day of month)
+    "[0-9]{4}[-,_,/,., ][0-9]{2}",
+    "[0-9]{6}"
   )
     .map(_.r)
 
   /** Allowed ranges for each element of a timestamp (except ms) */
-  final val TimestampRanges: Seq[Range] = Seq(
-    1900 to 2100,
-    1 to 12,
-    1 to 31,
-    0 to 23,
-    0 to 59,
-    0 to 59
-  )
+  final val TimestampRanges: Seq[Range] = {
+    val today: LocalDateTime = LocalDateTime.now
+    Seq(
+      today.minusYears(200).getYear to today.getYear,
+      1 to 12,
+      1 to 31,  // placeholder
+      0 to 23,
+      0 to 59,
+      0 to 59
+    )
+  }
 
-  /** Default [[String]] for inputing as time into dates */
+  /** Default [[String]] for imputing as time into dates */
   final val DefaultTime: String = "_000100"
+
+  /** Default [[String]] for imputing as day of month into dates */
+  final val DefaultDay: String = "01"
 
   /** Problematic video formats */
   final val ProblematicVideoFormats: Seq[String] = Seq(".mpg")
