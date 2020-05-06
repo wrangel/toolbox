@@ -14,8 +14,6 @@ object Constants {
     "CreateDate"
   )
 
-  /** Reference exif  */
-
   /* Conversion from full name to setFile identifier */
   final val MacOsTimestampTags: Map[String, Seq[String]] = Map(
     "create" -> Seq("d"),

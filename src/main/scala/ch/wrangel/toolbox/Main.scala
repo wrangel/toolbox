@@ -12,19 +12,18 @@ import scala.util.Try
  * <PathToFiles> validate
  *
  * Typical procedure will be:
- * - 1) exif    -- YELLOW tag --
- *      To apply a valid DateTimeOriginal / CreateDate to file name,
- *      mac timestamps, and the rest of the exif timestamps
- * - 2) file    -- GREY tag --
+ * - 1) exif
+ *      a) To apply a valid DateTimeOriginal / CreateDate to file name,
+ *      mac timestamps, and the rest of the exif timestamps, OR
+ *      B) To detect potentially valid exif dates outside DateTimeOriginal / CreateDate, ask for user's choice,
+ *      and apply choice (if any) to file name, mac timestamps, and the rest of the exif timestamps
+ * - 2) file
  *      To detect a valid timestamp in the file name and apply them to file name,
  *      mac timestamps, and exif timestamps.
  *      If you know an approximate or accurate date or event timestamp of your photo, and there are no accurate
  *      timestamps available for neither exif nor mac, then add the date / timestamp to your photo's name.
  *      The procedure takes it from there
- * - 3) potentialExif -- ORANGE tag --
- *      To detect potentially valid exif dates outside DateTimeOriginal / CreateDate, ask for user's choice,
- *      and apply choice (if any) to file name, mac timestamps, and the rest of the exif timestamps
- * - 4) validate
+ * - 3) validate
  *      To check if the timestamp in file name and DateTimeOriginal / Create Date coincide. Move to sub folder
  *      "_unsuccessful" otherwise
  *

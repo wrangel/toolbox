@@ -14,7 +14,14 @@ import scala.util.{Failure, Success, Try}
  */
 object UseCaseFactory {
 
-  /* Renames files & changes mac timestamp according to the either DateTimeOriginal or CreateDate */
+  /* Renames files & changes mac timestamp according to exif timestamps.
+  *
+  * These are either one of the principal timestamps DateTimeOriginal or CreateDate, in which case the timestamp
+  * is taken as-is and applied to file name and mac timestamps.
+  * If no principal timestamp exists for the file, but further exif timestamps ("secondary timestamps") are
+  * available, the user is asked to pick one or none of the timestamps. If some timestamp is chosen,
+  * the file is renamed accordingly, and exif and mac timestamps are rewritten
+  */
   private object ExifAsReference extends UseCase {
 
     /** Runs the process
@@ -26,65 +33,72 @@ object UseCaseFactory {
       FileUtilities.iterateFiles(directory)
         .foreach {
           filePath: Path =>
-            TimestampUtilities.readExifTimestamps(filePath)
-              .filter {
+            val (
+              principalTimestamps: Map[String, Option[LocalDateTime]],
+              secondaryTimestamps: Map[String, Option[LocalDateTime]]
+              ) = TimestampUtilities.readExifTimestamps(filePath)
+              .partition {
                 case (tag: String, _: Option[LocalDateTime]) =>
                   Constants.ReferenceExifTimestamps
                     .contains(tag)
               }
-              .values
-              .flatten
-              .headOption
-            match {
-              case Some(ldt: LocalDateTime) =>
-                treatedFiles += MiscUtilities.prepareFile(filePath, ldt, needsRenaming = needsRenaming)
-              case None =>
-            }
+             if(principalTimestamps.nonEmpty)
+               handlePrincipalTimestamps(principalTimestamps, filePath, needsRenaming)
+             else
+               handleSecondaryTimestamps(secondaryTimestamps, filePath, needsRenaming)
         }
       TimestampUtilities.writeTimestamps(treatedFiles.toMap, Some(Constants.ReferenceExifTimestamps))
+      TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
+      Validate.run(directory, needsRenaming)
     }
 
-  }
-
-  /** Gets all the exif timestamps. The user is asked to pick one or none of the timestamps.
-   * If some timestamp is chosen, the file is renamed accordingly, and exif and mac timestamps are rewritten
-   */
-  private object ExifAsPotentialReference extends UseCase {
-
-    /** Runs the process
+    /** Handles principal timestamps
      *
-     * @param directory     [[String]] representation of directory path
-     * @param needsRenaming Flag indicating whether file should be renamed
+     * @param principalTimestamps [[Map]] with exif timestamp ids as keys, and optional [[LocalDateTime]] as values
+     * @param filePath [[Path]] to file
+     * @param needsRenaming Flag indicating whether to rename the file
      */
-    def run(directory: String, needsRenaming: Boolean): Unit = {
-      Try {
-        implicit val localDateOrdering: Ordering[LocalDateTime] = _ compareTo _
-        FileUtilities.iterateFiles(directory)
-          .foreach {
-            filePath: Path =>
-              val coincidingExifTimestamps: Seq[LocalDateTime] =
-                TimestampUtilities.readExifTimestamps(filePath)
-                  .values
-                  .flatten
-                  .toSeq
-                  .sorted
-              val options: Seq[(LocalDateTime, Int)] = coincidingExifTimestamps.zipWithIndex
-              if (coincidingExifTimestamps.nonEmpty) {
-                val feedback: Int = StdIn.readLine(
-                  filePath + ":\n" + options.mkString("\n") + "\nNone of those: -1\n"
-                )
-                  .toInt
-                if (feedback > -1)
-                  treatedFiles += MiscUtilities.prepareFile(
-                    filePath, coincidingExifTimestamps(feedback), needsRenaming = needsRenaming
-                  )
-              }
-              else
-                println(s"No valid timestamps found for $filePath")
-          }
-        TimestampUtilities.writeTimestamps(treatedFiles.toMap)
-        Validate.run(directory, needsRenaming)
+    private def handlePrincipalTimestamps(
+                                           principalTimestamps: Map[String, Option[LocalDateTime]],
+                                           filePath: Path,
+                                           needsRenaming: Boolean
+                                 ): Unit = {
+      println(s"\nHandling principal timestamps for $filePath")
+      TimestampUtilities.getExifTimestamps(principalTimestamps)
+        .headOption
+      match {
+        case Some(ldt: LocalDateTime) =>
+          treatedFiles += MiscUtilities.prepareFile(filePath, ldt, needsRenaming = needsRenaming)
+        case None =>
       }
+    }
+
+    /** Handles secondary timestamps
+     *
+     * @param secondaryTimestamps [[Map]] with exif timestamp ids as keys, and optional [[LocalDateTime]] as values
+     * @param filePath [[Path]] to file
+     * @param needsRenaming Flag indicating whether to rename the file
+     */
+    private def handleSecondaryTimestamps(
+                                           secondaryTimestamps: Map[String, Option[LocalDateTime]],
+                                           filePath: Path,
+                                           needsRenaming: Boolean
+                                         ): Unit = {
+      println(s"\nHandling secondary timestamps for $filePath")
+      val candidateTimestamps: Seq[LocalDateTime] = TimestampUtilities.getExifTimestamps(secondaryTimestamps)
+        .toSeq
+        .sorted
+      val options: Seq[(LocalDateTime, Int)] = candidateTimestamps.zipWithIndex
+      if (candidateTimestamps.nonEmpty) {
+        val feedback: Int = StdIn.readLine(options.mkString("\n") + "\nNone of those: -1\n")
+          .toInt
+        if (feedback > -1)
+          treatedFiles2 += MiscUtilities.prepareFile(
+            filePath, candidateTimestamps(feedback), needsRenaming = needsRenaming
+          )
+      }
+      else
+        println("No valid timestamps found")
     }
 
   }
@@ -184,8 +198,6 @@ object UseCaseFactory {
     useCase match {
       case "exif" =>
         ExifAsReference
-      case "potentialExif" =>
-        ExifAsPotentialReference
       case "file" =>
         FileNameAsReference
       case "validate" =>

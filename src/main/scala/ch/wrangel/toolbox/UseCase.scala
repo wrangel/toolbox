@@ -11,6 +11,9 @@ trait UseCase {
   /** Instantiates a [[List]] of files which are to be treated */
   val treatedFiles: ListBuffer[(Path, LocalDateTime)] = ListBuffer[(Path, LocalDateTime)]()
 
+  /** Instantiates a second [[List]] of files which are to be treated */
+  val treatedFiles2: ListBuffer[(Path, LocalDateTime)] = ListBuffer[(Path, LocalDateTime)]()
+
   /** Runs the task
    *
    * @param directory     [[String]] representation of directory path

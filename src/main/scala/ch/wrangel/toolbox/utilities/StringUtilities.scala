@@ -34,12 +34,12 @@ object StringUtilities {
       }
   }
 
-  /** Gets all exif timestamp tags available for the photo
+  /** Gets all exif timestamp tags available for the file
    *
    * @param filePath [[Path]] to the file
    * @return Mapping from file [[Path]] to the file's exif timestamp tags
    */
-  def getAllExifTimestampTags(filePath: Path): (Path, Seq[String]) = {
+  def getExifTimestampTags(filePath: Path): (Path, Seq[String]) = {
     filePath -> Constants.ReferenceExifTimestamps
       .concat(
         prepareExiftoolOutput(s"""${Constants.ExiftoolBinary} -time:all -m -s "$filePath"""")

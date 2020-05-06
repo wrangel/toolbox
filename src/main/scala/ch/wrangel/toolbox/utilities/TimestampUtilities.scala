@@ -62,7 +62,7 @@ object TimestampUtilities {
                                  ): Unit = {
     fileNameToTimestampMap.foreach {
       case (filePath: Path, ldt: LocalDateTime) =>
-        StringUtilities.getAllExifTimestampTags(filePath)._2
+        StringUtilities.getExifTimestampTags(filePath)._2
           .filter {
             exifTag: String =>
               optionalExcludedExifTags match {
@@ -286,6 +286,16 @@ object TimestampUtilities {
             }
           }
       }
+  }
+
+  /** Gets all exif timestamps available for the file
+   *
+   * @param timestamps [[Map]] with exif timestamp ids as keys, and optional [[LocalDateTime]] as values
+   * @return [[Iterable]] of existing [[LocalDateTime]]
+   */
+  def getExifTimestamps(timestamps: Map[String, Option[LocalDateTime]]): Iterable[LocalDateTime] = {
+    timestamps.values
+      .flatten
   }
 
 }
