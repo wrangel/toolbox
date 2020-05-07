@@ -16,12 +16,12 @@ object StringUtilities {
       .trim
   }
 
-  /** Prepares the output of the exiftool for further processing
+  /** Prepares the output of the ExifTool for further processing
    *
-   * @param command Exiftool command
+   * @param command ExifTool command
    * @return [[Array]] of [[String]] [[Array]]s in a processable format
    */
-  def prepareExiftoolOutput(command: String): Array[Array[String]] = {
+  def prepareExifToolOutput(command: String): Array[Array[String]] = {
     cleanCommand(command).split("\n")
       .map(_.split(" : ").map(_.trim))
       .filter {

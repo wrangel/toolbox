@@ -75,14 +75,15 @@ object Constants {
   /** Target video format */
   final val TargetVideoFormat: String = ".mp4"
 
-  /** Exif tool binary */
-  final val ExiftoolBinary: String = "/usr/local/bin/exiftool"
-
   /** [[Path]] to exif config file */
-  final val ExifConfigFilePath: Path = Paths.get(System.getProperty("user.dir"), "exif.config")
+  final val ExifToolConfigFilePath: Path = Paths.get(System.getProperty("user.dir"), "exif.config")
 
   /** Content of exif config file */
-  final val ExifConfigFileContent: String = "%Image::ExifTool::UserDefined::Options = (\n\tLargeFileSupport => 1,\n);"
+  final val ExifToolConfigFileContent: String =
+    "%Image::ExifTool::UserDefined::Options = (\n\tLargeFileSupport => 1,\n);"
+
+  /** Exif tool base command */
+  final val ExifToolBaseCommand: String = s"/usr/local/bin/exiftool -config $ExifToolConfigFilePath"
 
   /** Ffmpeg binary */
   final val FfmpegBinary: String = "/usr/local/bin/ffmpeg"

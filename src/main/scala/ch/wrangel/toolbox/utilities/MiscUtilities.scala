@@ -47,7 +47,7 @@ object MiscUtilities {
             StringUtilities.cleanCommand(
               // mpg to mp4
               s"""${Constants.FfmpegBinary} -i "$filePath" -c:v libx264 -preset veryslow
-                 |-crf 0 -y -c:a copy "$outputFilePath"""".stripMargin
+                 |-crf 0 -y -c:a copy "$outputFilePath""""
             )
             StringUtilities.cleanCommand(s"rm $filePath")
           }

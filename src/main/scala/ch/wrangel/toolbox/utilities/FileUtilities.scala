@@ -118,15 +118,15 @@ object FileUtilities {
    * - Support for large files
    */
   def createOrAdaptExifConfigFile(): Unit = {
-    if(!Files.exists(Constants.ExifConfigFilePath))
-      writeToFile(Constants.ExifConfigFileContent)
+    if(!Files.exists(Constants.ExifToolConfigFilePath))
+      writeToFile(Constants.ExifToolConfigFileContent)
     else {
-      val bufferedSource: BufferedSource = Source.fromFile(Constants.ExifConfigFilePath.toString)
+      val bufferedSource: BufferedSource = Source.fromFile(Constants.ExifToolConfigFilePath.toString)
       val content: String = bufferedSource.getLines.mkString("\n")
       bufferedSource.close
-      if(!content.contains(Constants.ExifConfigFileContent)) {
+      if(!content.contains(Constants.ExifToolConfigFileContent)) {
         // Append content to existing content
-        writeToFile(content + "\n\n" + Constants.ExifConfigFileContent)
+        writeToFile(content + "\n\n" + Constants.ExifToolConfigFileContent)
       }
     }
 
@@ -135,7 +135,7 @@ object FileUtilities {
      * @param content [[String]] representing content to be written to file
      */
     def writeToFile(content: String): Unit = {
-      val bw: BufferedWriter = new BufferedWriter(new FileWriter(new File(Constants.ExifConfigFilePath.toString)))
+      val bw: BufferedWriter = new BufferedWriter(new FileWriter(new File(Constants.ExifToolConfigFilePath.toString)))
       bw.write(content)
       bw.close()
     }

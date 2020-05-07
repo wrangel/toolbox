@@ -155,8 +155,10 @@ object UseCaseFactory {
                 Constants.ReferenceExifTimestamps
                   .foreach {
                     tag: String =>
-                      StringUtilities.prepareExiftoolOutput(
-                        s"""${Constants.ExiftoolBinary} -$tag "$filePath""""
+                      StringUtilities.prepareExifToolOutput(
+                        StringUtilities.cleanCommand(
+                          s"""${Constants.ExifToolBaseCommand} -$tag "$filePath""""
+                        )
                       )
                         .headOption match {
                         case Some(element: Array[String]) =>
