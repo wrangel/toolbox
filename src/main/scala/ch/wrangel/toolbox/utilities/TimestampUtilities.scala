@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, LocalTime, YearMonth, ZonedDateTime}
 
 import ch.wrangel.toolbox.Constants
+import ch.wrangel.toolbox.utilities.StringUtilities.prepareExiftoolOutput
 
 import scala.collection.mutable.ListBuffer
 import scala.io.StdIn
@@ -62,7 +63,7 @@ object TimestampUtilities {
                                  ): Unit = {
     fileNameToTimestampMap.foreach {
       case (filePath: Path, ldt: LocalDateTime) =>
-        StringUtilities.getExifTimestampTags(filePath)._2
+        getExifTimestampTags(filePath)._2
           .filter {
             exifTag: String =>
               optionalExcludedExifTags match {
@@ -93,9 +94,7 @@ object TimestampUtilities {
    * @return [[Map]] of tag identifier and the optional corresponding [[LocalDateTime]]
    */
   def readExifTimestamps(filePath: Path): Map[String, Option[LocalDateTime]] = {
-    StringUtilities.prepareExiftoolOutput(
-      s"""${Constants.ExiftoolBinary} -time:all -m -s "${filePath.toString}""""
-    )
+    StringUtilities.prepareExiftoolOutput(constructExiftoolGetAllTimestampsCommand(filePath))
       .map {
         descriptorAndTimestamp: Array[String] =>
           descriptorAndTimestamp.head ->
@@ -296,6 +295,30 @@ object TimestampUtilities {
   def getExifTimestamps(timestamps: Map[String, Option[LocalDateTime]]): Iterable[LocalDateTime] = {
     timestamps.values
       .flatten
+  }
+
+  /** Gets all exif timestamp tags available for the file
+   *
+   * @param filePath [[Path]] to the file
+   * @return Mapping from file [[Path]] to the file's exif timestamp tags
+   */
+  def getExifTimestampTags(filePath: Path): (Path, Seq[String]) = {
+    filePath -> Constants.ReferenceExifTimestamps
+      .concat(
+        prepareExiftoolOutput(constructExiftoolGetAllTimestampsCommand(filePath))
+          .map(_.head)
+      )
+      .distinct
+  }
+
+  /** Constructs the exiftool command to extract all timestamps
+   *
+   * @param filePath [[Path]] to the file
+   * @return [[String]] representing the exiftool command
+   */
+  def constructExiftoolGetAllTimestampsCommand(filePath: Path): String = {
+    s"""${Constants.ExiftoolBinary} -config ${Constants.ExifConfigFilePath}
+       |-time:all -m -s "$filePath""""
   }
 
 }

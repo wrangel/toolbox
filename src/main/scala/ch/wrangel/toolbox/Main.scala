@@ -1,6 +1,6 @@
 package ch.wrangel.toolbox
 
-import ch.wrangel.toolbox.utilities.MiscUtilities
+import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities}
 
 import scala.util.Try
 
@@ -33,6 +33,7 @@ import scala.util.Try
  */
 object Main extends App {
 
+  FileUtilities.createOrAdaptExifConfigFile()
   MiscUtilities.checkForZeroByteLengthFiles(args.head)
   UseCaseFactory(args(1)).run(
     args.head,

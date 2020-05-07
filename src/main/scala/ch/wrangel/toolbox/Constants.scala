@@ -1,5 +1,6 @@
 package ch.wrangel.toolbox
 
+import java.nio.file.{Path, Paths}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -77,10 +78,16 @@ object Constants {
   /** Exif tool binary */
   final val ExiftoolBinary: String = "/usr/local/bin/exiftool"
 
+  /** [[Path]] to exif config file */
+  final val ExifConfigFilePath: Path = Paths.get(System.getProperty("user.dir"), "exif.config")
+
+  /** Content of exif config file */
+  final val ExifConfigFileContent: String = "%Image::ExifTool::UserDefined::Options = (\n\tLargeFileSupport => 1,\n);"
+
   /** Ffmpeg binary */
   final val FfmpegBinary: String = "/usr/local/bin/ffmpeg"
 
-  /** folder name for files having undergone unsuccessful exif manipulation */
+  /** Folder name for files having undergone unsuccessful exif manipulation */
   final val UnsuccessfulFolder: String = "_unsuccessful"
 
 }

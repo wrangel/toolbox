@@ -1,8 +1,12 @@
 package ch.wrangel.toolbox.utilities
 
+import java.io.{BufferedWriter, File, FileWriter}
 import java.nio.file._
 
+import ch.wrangel.toolbox.Constants
+
 import scala.collection.mutable.ListBuffer
+import scala.io.{BufferedSource, Source}
 import scala.jdk.StreamConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -106,7 +110,34 @@ object FileUtilities {
             case _: java.nio.file.NoSuchFileException =>
           }
       }
+    }
+  }
 
+  /** Creates an exif config file, or adds content to it.
+   *
+   * - Support for large files
+   */
+  def createOrAdaptExifConfigFile(): Unit = {
+    if(!Files.exists(Constants.ExifConfigFilePath))
+      writeToFile(Constants.ExifConfigFileContent)
+    else {
+      val bufferedSource: BufferedSource = Source.fromFile(Constants.ExifConfigFilePath.toString)
+      val content: String = bufferedSource.getLines.mkString("\n")
+      bufferedSource.close
+      if(!content.contains(Constants.ExifConfigFileContent)) {
+        // Append content to existing content
+        writeToFile(content + "\n\n" + Constants.ExifConfigFileContent)
+      }
+    }
+
+    /** Writes content to a file
+     *
+     * @param content [[String]] representing content to be written to file
+     */
+    def writeToFile(content: String): Unit = {
+      val bw: BufferedWriter = new BufferedWriter(new FileWriter(new File(Constants.ExifConfigFilePath.toString)))
+      bw.write(content)
+      bw.close()
     }
   }
 
