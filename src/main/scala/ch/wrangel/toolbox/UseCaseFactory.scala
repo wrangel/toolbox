@@ -156,9 +156,7 @@ object UseCaseFactory {
                   .foreach {
                     tag: String =>
                       StringUtilities.prepareExifToolOutput(
-                        StringUtilities.cleanCommand(
-                          s"""${Constants.ExifToolBaseCommand} -$tag "$filePath""""
-                        )
+                        s"""${Constants.ExifToolBaseCommand} -s -$tag "$filePath""""
                       )
                         .headOption match {
                         case Some(element: Array[String]) =>

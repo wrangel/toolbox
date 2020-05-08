@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 import ch.wrangel.toolbox.Constants
 
 import scala.collection.mutable.ListBuffer
+import scala.sys.process.{Process, ProcessLogger}
 
 
 /* Utilities for miscellaneous functionality */
@@ -44,12 +45,12 @@ object MiscUtilities {
             .toLowerCase
           if (Constants.ProblematicVideoFormats.contains(extension)) {
             println(s"Convert $filePath to $outputFilePath")
-            StringUtilities.cleanCommand(
+            getProcessOutput(
               // mpg to mp4
               s"""${Constants.FfmpegBinary} -i "$filePath" -c:v libx264 -preset veryslow
                  |-crf 0 -y -c:a copy "$outputFilePath""""
             )
-            StringUtilities.cleanCommand(s"rm $filePath")
+            getProcessOutput(s"rm $filePath")
           }
       }
   }
@@ -83,6 +84,26 @@ object MiscUtilities {
     if(rest.nonEmpty)
       splitCollection(splitPoints.tail, rest, result)
     element +=: result
+  }
+
+  /** Handles shell processes
+   * https://stackoverflow.com/questions/29935873/how-to-run-external-process-in-scala-and-get-both-exit-code-and-output
+   *
+   * @param command [[String]] representing shell command
+   * @return Optional Stdout
+   */
+  def getProcessOutput(command: String): Option[String] = {
+    val stdout: StringBuilder = new StringBuilder
+    val stderr: StringBuilder = new StringBuilder
+    val logger: ProcessLogger = ProcessLogger(stdout.append(_), stderr.append(_))
+    val status: Int = Process(command.stripMargin).!(logger)
+    status match {
+      case 0 =>
+        Some(stdout.toString.trim)
+      case _ =>
+        println(">>> NOT TREATED: " + stderr.toString.trim)
+        None
+    }
   }
 
 }

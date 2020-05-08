@@ -8,7 +8,6 @@ import ch.wrangel.toolbox.Constants
 import scala.collection.mutable.ListBuffer
 import scala.io.{BufferedSource, Source}
 import scala.jdk.StreamConverters._
-import scala.util.{Failure, Success, Try}
 
 /*Utilities for file manipulation */
 object FileUtilities {
@@ -68,30 +67,6 @@ object FileUtilities {
       relevantPathPortion.substring(0, length - dotPosition),
       relevantPathPortion.substring(length - dotPosition, length)
     )
-  }
-
-  /** Convenience method for treating timestamp manipulations
-   *
-   * @param command  [[String]] command of manipulation process
-   * @param tag      Tag to be treated
-   * @param filePath [[Path]] to the file
-   * @return Flag indicating whether manipulation failed
-   */
-  def handleManipulation(
-                          command: String,
-                          tag: String,
-                          manipulationType: String,
-                          filePath: Path,
-                          newDate: String
-                        ): Unit = {
-    Try {
-      StringUtilities.cleanCommand(command)
-    } match {
-      case Success(output: String) =>
-        println(s"$manipulationType: Successfully changed $tag of $filePath to $newDate")
-      case Failure(t: Throwable) =>
-        println(s">>> NOT TREATED: $tag of $filePath")
-    }
   }
 
   /** Handles failed files

@@ -41,13 +41,13 @@ object TimestampUtilities {
             .foreach {
               macTag: String =>
                 val newDate: String = fileNameToTimestampMap(filePath).format(Constants.TimestampFormatters("mac"))
-                FileUtilities.handleManipulation(
-                  s"""SetFile -$macTag "$newDate" "${filePath.toString}"""",
-                  macTag,
-                  "Mac",
-                  filePath,
-                  newDate
-                )
+                MiscUtilities.getProcessOutput(
+                  s"""SetFile -$macTag "$newDate" "${filePath.toString}""""
+                ) match {
+                  case Some(_) =>
+                    println(s"Mac: Successfully changed $macTag of $filePath to $newDate")
+                  case None =>
+                }
             }
       }
   }
@@ -76,16 +76,14 @@ object TimestampUtilities {
           .map {
             exifTag: String =>
               val newDate: String = ldt.format(Constants.TimestampFormatters("exif"))
-              FileUtilities.handleManipulation(
-                StringUtilities.cleanCommand(
-                  s"""${Constants.ExifToolBaseCommand}
-                     |-m -EXIF:ExifIFD:$exifTag="$newDate" -overwrite_original "$filePath""""
-                ),
-                exifTag,
-                "Exif",
-                filePath,
-                newDate
-              )
+              MiscUtilities.getProcessOutput(
+                s"""${Constants.ExifToolBaseCommand}
+                   |-m -EXIF:ExifIFD:$exifTag="$newDate" -overwrite_original "$filePath""""
+              ) match {
+                case Some(_) =>
+                  println(s"Exif: Successfully changed $exifTag of $filePath to $newDate")
+                case None =>
+              }
           }
     }
   }
