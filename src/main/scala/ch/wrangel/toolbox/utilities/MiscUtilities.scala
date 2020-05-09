@@ -96,8 +96,7 @@ object MiscUtilities {
     val stdout: StringBuilder = new StringBuilder
     val stderr: StringBuilder = new StringBuilder
     val logger: ProcessLogger = ProcessLogger(stdout.append(_), stderr.append(_))
-    val status: Int = Process(command.stripMargin).!(logger)
-    status match {
+    Process(command.stripMargin).!(logger) match {
       case 0 =>
         Some(stdout.toString.trim)
       case _ =>
