@@ -95,7 +95,11 @@ object MiscUtilities {
   def getProcessOutput(command: String): Option[String] = {
     val stdout: StringBuilder = new StringBuilder
     val stderr: StringBuilder = new StringBuilder
-    val logger: ProcessLogger = ProcessLogger(stdout.append(_), stderr.append(_))
+    val logger: ProcessLogger = ProcessLogger {
+      line: String =>
+        stdout.append(line + "\n")
+        stderr.append(line + "\n")
+    }
     Process(command.stripMargin).!(logger) match {
       case 0 =>
         Some(stdout.toString.trim)
