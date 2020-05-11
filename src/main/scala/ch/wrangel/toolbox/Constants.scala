@@ -91,4 +91,7 @@ object Constants {
   /** Folder name for files having undergone unsuccessful exif manipulation */
   final val UnsuccessfulFolder: String = "_unsuccessful"
 
+  /** Excluded file types */
+  final val ExcludedFileTypes: Seq[String] = Seq(".txt")
+
 }

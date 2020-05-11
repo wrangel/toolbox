@@ -16,14 +16,9 @@ object FileUtilities {
    *
    * @param directory             [[String]] representation of directory path
    * @param walk                  [[Boolean]] indicating whether the iteration will be recursive
-   * @param admissibleFileFormats Optional [[Seq]] of relevant file formats
    * @return [[Seq]] of file [[Path]]s within the directory
    */
-  def iterateFiles(
-                    directory: String,
-                    walk: Boolean = false,
-                    admissibleFileFormats: Option[Seq[String]] = None
-                  ): Seq[Path] = {
+  def iterateFiles(directory: String, walk: Boolean = false): Seq[Path] = {
     (
       if (walk) {
         Files.walk(Paths.get(directory))
@@ -33,19 +28,15 @@ object FileUtilities {
       .filter(Files.isRegularFile(_))
       .filter {
         filePath: Path =>
+          val filePathString: String = filePath.toString
           !Files.isHidden(filePath) &
-            !filePath.toString.contains("@") & {
-            admissibleFileFormats match {
-              case Some(fileExtensions: Seq[String]) =>
-                fileExtensions.exists {
-                  fileExtension: String =>
-                    FileSystems.getDefault
-                      .getPathMatcher(s"glob:**.$fileExtension")
-                      .matches(filePath)
-                }
-              case None =>
-                true
-            }
+            !filePathString.contains("@") & {
+            Constants.ExcludedFileTypes
+              .map {
+                fileType: String =>
+                  !filePathString.endsWith(fileType)
+              }
+              .forall(_ == true)
           }
       }
       .toScala(Seq)
