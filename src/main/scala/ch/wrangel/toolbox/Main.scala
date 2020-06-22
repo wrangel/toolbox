@@ -19,8 +19,8 @@ import scala.util.Try
  *      and apply choice (if any) to file name, mac timestamps, and the rest of the exif timestamps.
  * - 2) file
  *      To detect a valid timestamp in the file name and apply them to file name,
- *      mac timestamps, and exif timestamps.
-   *      timestamps available for neither exif nor mac, then add the date / timestamp to your photo's name.
+ *      mac timestamps, and exif timestamps. (Mac only: comment out TimestampUtilities, line 25)
+   *      timestamps available for neither exif nor mac, th en add the date / timestamp to your photo's name.
  *      The procedure takes it from there
  * - 3) validate
  *      To check if the timestamp in file name and DateTimeOriginal / Create Date coincide. Move to a sub folder

@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 
 import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities, StringUtilities, TimestampUtilities}
 
-import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
 
@@ -90,7 +89,9 @@ object UseCaseFactory {
         .sorted
       val options: Seq[(LocalDateTime, Int)] = candidateTimestamps.zipWithIndex
       if (candidateTimestamps.nonEmpty) {
-        val feedback: Int = StdIn.readLine(options.mkString("\n") + "\nNone of those: -1\n")
+        val feedback: Int = MiscUtilities.getFeedback(
+          options.mkString("\n") + "\nNone of those: -1\n", (-1 until options.size).map(_.toString)
+        )
           .toInt
         if (feedback > -1)
           treatedFiles2 += MiscUtilities.prepareFile(
@@ -186,7 +187,7 @@ object UseCaseFactory {
         Paths.get(directory, Constants.UnsuccessfulFolder)
       )
     }
-
+    
   }
 
   /** Factory method

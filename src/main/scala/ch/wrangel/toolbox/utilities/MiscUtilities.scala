@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 import ch.wrangel.toolbox.Constants
 
 import scala.collection.mutable.ListBuffer
+import scala.io.StdIn
 import scala.sys.process.{Process, ProcessLogger}
 
 
@@ -107,6 +108,22 @@ object MiscUtilities {
         println(">>> NOT TREATED: " + stderr.toString.trim)
         None
     }
+  }
+
+  /** Requests correct user input
+   *
+   * @param message Message to the user
+   * @param validRange [[Seq]] of valid values
+   * @return Correct user input
+   */
+  @scala.annotation.tailrec
+  def getFeedback(message: String = "", validRange: Seq[String]): String = {
+    val addendum: String = s"Please select one of (${validRange.mkString(", ")})\n"
+    val feedback: String = StdIn.readLine(message.trim + "\n" + addendum)
+    if(validRange.contains(feedback))
+      feedback
+    else
+      getFeedback(validRange = validRange)
   }
 
 }

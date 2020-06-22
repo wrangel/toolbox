@@ -8,7 +8,6 @@ import ch.wrangel.toolbox.Constants
 import ch.wrangel.toolbox.utilities.StringUtilities.prepareExifToolOutput
 
 import scala.collection.mutable.ListBuffer
-import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 
 
@@ -22,7 +21,7 @@ object TimestampUtilities {
    */
   def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime], excludedExifTags: Option[Seq[String]] = None): Unit = {
     if (fileToDateMap.nonEmpty) {
-      writeExifTimestamps(fileToDateMap, excludedExifTags)
+      ////writeExifTimestamps(fileToDateMap, excludedExifTags)
       writeMacTimestamps(fileToDateMap)
     }
   }
@@ -273,12 +272,15 @@ object TimestampUtilities {
           Some(convertStringToTimestamp(date + Constants.DefaultTime, Constants.TimestampFormatters("file")).get)
         }
           .getOrElse {
-            val feedback: String = StdIn.readLine(s"Is $date of $filePath a valid partial date (y or n)?\n")
-            feedback match {
+            MiscUtilities.getFeedback(
+              s"Is $date of $filePath a valid partial date?", Seq("y", "n")
+            ) match {
               case "y" =>
                 Some(
-                  convertStringToTimestamp(date + Constants.DefaultDay + Constants.DefaultTime,
-                    Constants.TimestampFormatters("file")).get
+                  convertStringToTimestamp(
+                    date + Constants.DefaultDay + Constants.DefaultTime,
+                    Constants.TimestampFormatters("file")
+                  ).get
                 )
               case _ =>
                 None
