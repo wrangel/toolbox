@@ -21,7 +21,7 @@ object TimestampUtilities {
    */
   def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime], excludedExifTags: Option[Seq[String]] = None): Unit = {
     if (fileToDateMap.nonEmpty) {
-      ////writeExifTimestamps(fileToDateMap, excludedExifTags)
+      writeExifTimestamps(fileToDateMap, excludedExifTags)
       writeMacTimestamps(fileToDateMap)
     }
   }
