@@ -3,10 +3,12 @@ package ch.wrangel.toolbox
 import java.nio.file.Path
 import java.time.LocalDateTime
 
+import wvlet.log.LogSupport
+
 import scala.collection.mutable.ListBuffer
 
 /** Holds common tools for manipulation */
-trait UseCase {
+trait UseCase extends LogSupport {
 
   /** Instantiates a [[List]] of files which are to be treated */
   val treatedFiles: ListBuffer[(Path, LocalDateTime)] = ListBuffer[(Path, LocalDateTime)]()

@@ -5,13 +5,15 @@ import java.time.LocalDateTime
 
 import ch.wrangel.toolbox.Constants
 
+import wvlet.log.LogSupport
+
 import scala.collection.mutable.ListBuffer
 import scala.io.StdIn
 import scala.sys.process.{Process, ProcessLogger}
 
 
 /* Utilities for miscellaneous functionality */
-object MiscUtilities {
+object MiscUtilities extends LogSupport {
 
   /** Prepares an element of the treated files map
    *
@@ -21,7 +23,7 @@ object MiscUtilities {
    * @return [[Tuple2]] holding both [[Path]] to the renamed file and the file's [[LocalDateTime]]
    */
   def prepareFile(filePath: Path, ldt: LocalDateTime, needsRenaming: Boolean): (Path, LocalDateTime) = {
-    println(s"Adding $filePath to list of files which need manipulation")
+    info(s"Adding $filePath to list of files which need manipulation")
     (
       if (needsRenaming)
         TimestampUtilities.renameFileWithTimestamp(filePath, ldt)
@@ -45,7 +47,7 @@ object MiscUtilities {
           val extension: String = filePathComponents.last
             .toLowerCase
           if (Constants.ProblematicVideoFormats.contains(extension)) {
-            println(s"Convert $filePath to $outputFilePath")
+            info(s"Convert $filePath to $outputFilePath")
             getProcessOutput(
               // mpg to mp4
               s"""${Constants.FfmpegBinary} -i "$filePath" -c:v libx264 -preset veryslow
@@ -67,7 +69,7 @@ object MiscUtilities {
         filePath: Path =>
           if (Files.size(filePath) == 0) {
             zeroByteFiles += filePath.toString
-            println(s"Please remove $filePath, since it has byte size of 0")
+            error(s"Please remove $filePath, since it has byte size of 0")
           }
       }
     if (zeroByteFiles.nonEmpty)
@@ -96,16 +98,16 @@ object MiscUtilities {
   def getProcessOutput(command: String): Option[String] = {
     val stdout: StringBuilder = new StringBuilder
     val stderr: StringBuilder = new StringBuilder
-    val logger: ProcessLogger = ProcessLogger {
+    val procLogger: ProcessLogger = ProcessLogger {
       line: String =>
         stdout.append(line + "\n")
         stderr.append(line + "\n")
     }
-    Process(command.stripMargin).!(logger) match {
+    Process(command.stripMargin).!(procLogger) match {
       case 0 =>
         Some(stdout.toString.trim)
       case _ =>
-        println(">>> NOT TREATED: " + stderr.toString.trim)
+        error(">>> NOT TREATED: " + stderr.toString.trim)
         None
     }
   }

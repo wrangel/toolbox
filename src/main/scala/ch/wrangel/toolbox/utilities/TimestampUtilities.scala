@@ -6,13 +6,14 @@ import java.time.{LocalDateTime, LocalTime, YearMonth, ZonedDateTime}
 
 import ch.wrangel.toolbox.Constants
 import ch.wrangel.toolbox.utilities.StringUtilities.prepareExifToolOutput
+import wvlet.log.LogSupport
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 
 /** Holds a collection of timestamp utilities */
-object TimestampUtilities {
+object TimestampUtilities extends LogSupport {
 
   /** Adjusts both Mac OS and exif timestamps
    *
@@ -44,7 +45,7 @@ object TimestampUtilities {
                   s"""SetFile -$macTag "$newDate" "${filePath.toString}""""
                 ) match {
                   case Some(_) =>
-                    println(s"Mac: Successfully changed $macTag of $filePath to $newDate")
+                    info(s"Mac: Successfully changed $macTag of $filePath to $newDate")
                   case None =>
                 }
             }
@@ -80,7 +81,7 @@ object TimestampUtilities {
                    |-m -EXIF:ExifIFD:$exifTag="$newDate" -overwrite_original "$filePath""""
               ) match {
                 case Some(_) =>
-                  println(s"Exif: Successfully changed $exifTag of $filePath to $newDate")
+                  info(s"Exif: Successfully changed $exifTag of $filePath to $newDate")
                 case None =>
               }
           }
@@ -116,7 +117,7 @@ object TimestampUtilities {
     }
     match {
       case Success(ldt: LocalDateTime) =>
-        if (ldt.getYear == 1970 & ldt.getMonth == 1 & ldt.getDayOfMonth == 1)
+        if (ldt.getYear == 1970 & ldt.getMonthValue == 1 & ldt.getDayOfMonth == 1)
           None
         else
           Some(ldt)
@@ -143,13 +144,13 @@ object TimestampUtilities {
     if (!filePathComponents.head.equals(timestamp) & Files.isRegularFile(filePath)) {
       val newFileName: String =
         timestamp + Constants.PartitionString + oldFileName
-      println(s"Renaming $oldFileName to $newFileName")
+      info(s"Renaming $oldFileName to $newFileName")
       val newPath: Path = filePath.resolveSibling(newFileName)
       Files.move(filePath, newPath)
       newPath
     }
     else {
-      println(s"No need to rename $oldFileName")
+      info(s"No need to rename $oldFileName")
       filePath
     }
   }

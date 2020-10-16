@@ -29,7 +29,11 @@ object UseCaseFactory {
      * @param needsRenaming Flag indicating whether file should be renamed
      */
     def run(directory: String, needsRenaming: Boolean): Unit = {
-      FileUtilities.iterateFiles(directory)
+
+      val feedback: String = MiscUtilities.getFeedback(
+        "Do you want to check for secondary timestamps?", Seq("y", "n")
+      )
+        FileUtilities.iterateFiles(directory)
         .foreach {
           filePath: Path =>
             val (
@@ -43,8 +47,10 @@ object UseCaseFactory {
               }
              if(principalTimestamps.nonEmpty)
                handlePrincipalTimestamps(principalTimestamps, filePath, needsRenaming)
-             else
+             else if (feedback.equals("y")) {
+               info(s"Omitting $filePath")
                handleSecondaryTimestamps(secondaryTimestamps, filePath, needsRenaming)
+             }
         }
       TimestampUtilities.writeTimestamps(treatedFiles.toMap, Some(Constants.ReferenceExifTimestamps))
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
@@ -62,7 +68,7 @@ object UseCaseFactory {
                                            filePath: Path,
                                            needsRenaming: Boolean
                                  ): Unit = {
-      println(s"\nHandling principal timestamps for $filePath")
+      info(s"\nHandling principal timestamps for $filePath")
       TimestampUtilities.getExifTimestamps(principalTimestamps)
         .headOption
       match {
@@ -83,7 +89,7 @@ object UseCaseFactory {
                                            filePath: Path,
                                            needsRenaming: Boolean
                                          ): Unit = {
-      println(s"\nHandling secondary timestamps for $filePath")
+      info(s"\nHandling secondary timestamps for $filePath")
       val candidateTimestamps: Seq[LocalDateTime] = TimestampUtilities.getExifTimestamps(secondaryTimestamps)
         .toSeq
         .sorted
@@ -99,7 +105,7 @@ object UseCaseFactory {
           )
       }
       else
-        println("No valid timestamps found")
+        info("No valid timestamps found")
     }
 
   }
@@ -165,7 +171,7 @@ object UseCaseFactory {
                             element.last, Constants.TimestampFormatters("exif")
                           ) match {
                             case Some(ldt: LocalDateTime) =>
-                              println(
+                              info(
                                 s"Looking at $filePath with file timestamp $extractedFileTimestamp" +
                                   s" and $ldt ($tag)"
                               )
@@ -187,7 +193,7 @@ object UseCaseFactory {
         Paths.get(directory, Constants.UnsuccessfulFolder)
       )
     }
-    
+
   }
 
   /** Factory method
