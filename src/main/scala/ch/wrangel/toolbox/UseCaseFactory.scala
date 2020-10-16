@@ -68,7 +68,7 @@ object UseCaseFactory {
                                            filePath: Path,
                                            needsRenaming: Boolean
                                  ): Unit = {
-      info(s"\nHandling principal timestamps for $filePath")
+      info(s"Handling principal timestamps for $filePath")
       TimestampUtilities.getExifTimestamps(principalTimestamps)
         .headOption
       match {
@@ -89,7 +89,7 @@ object UseCaseFactory {
                                            filePath: Path,
                                            needsRenaming: Boolean
                                          ): Unit = {
-      info(s"\nHandling secondary timestamps for $filePath")
+      info(s"Handling secondary timestamps for $filePath")
       val candidateTimestamps: Seq[LocalDateTime] = TimestampUtilities.getExifTimestamps(secondaryTimestamps)
         .toSeq
         .sorted
