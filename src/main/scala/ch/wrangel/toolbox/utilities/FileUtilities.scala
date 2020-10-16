@@ -5,6 +5,7 @@ import java.nio.file._
 
 import ch.wrangel.toolbox.Constants
 
+import scala.collection.View
 import scala.collection.mutable.ListBuffer
 import scala.io.{BufferedSource, Source}
 import scala.jdk.StreamConverters._
@@ -18,13 +19,15 @@ object FileUtilities {
    * @param walk                  [[Boolean]] indicating whether the iteration will be recursive
    * @return [[Seq]] of file [[Path]]s within the directory
    */
-  def iterateFiles(directory: String, walk: Boolean = false): Seq[Path] = {
+  def iterateFiles(directory: String, walk: Boolean = false): View[Path] = {
     (
       if (walk) {
         Files.walk(Paths.get(directory))
       } else
         Files.list(Paths.get(directory))
       )
+      .toScala(Seq)
+      .view
       .filter(Files.isRegularFile(_))
       .filter {
         filePath: Path =>
@@ -39,7 +42,6 @@ object FileUtilities {
               .forall(_ == true)
           }
       }
-      .toScala(Seq)
   }
 
   /** Splits a filename into body and extension
