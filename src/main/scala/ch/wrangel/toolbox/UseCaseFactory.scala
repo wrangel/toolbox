@@ -27,12 +27,10 @@ object UseCaseFactory {
      *
      * @param directory     [[String]] representation of directory path
      * @param needsRenaming Flag indicating whether file should be renamed
+     * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
      */
-    def run(directory: String, needsRenaming: Boolean): Unit = {
+    def run(directory: String, needsRenaming: Boolean, treatSecondaryTimestamps: Boolean): Unit = {
 
-      val feedback: String = MiscUtilities.getFeedback(
-        "Do you want to check for secondary timestamps?", Seq("y", "n")
-      )
         FileUtilities.iterateFiles(directory)
         .foreach {
           filePath: Path =>
@@ -45,12 +43,16 @@ object UseCaseFactory {
                   Constants.ReferenceExifTimestamps
                     .contains(tag)
               }
-             if(principalTimestamps.nonEmpty)
-               handlePrincipalTimestamps(principalTimestamps, filePath, needsRenaming)
-             else if (feedback.equals("y")) {
-               info(s"Omitting $filePath")
-               handleSecondaryTimestamps(secondaryTimestamps, filePath, needsRenaming)
-             }
+            if (principalTimestamps.nonEmpty)
+              handlePrincipalTimestamps(principalTimestamps,
+                filePath,
+                needsRenaming)
+            else if (treatSecondaryTimestamps)
+              handleSecondaryTimestamps(secondaryTimestamps,
+                filePath,
+                needsRenaming)
+            else
+              info(s"Omitting $filePath")
         }
       TimestampUtilities.writeTimestamps(treatedFiles.toMap, Some(Constants.ReferenceExifTimestamps))
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
@@ -117,8 +119,9 @@ object UseCaseFactory {
      *
      * @param directory     [[String]] representation of directory path
      * @param needsRenaming Flag indicating whether file should be renamed
+     * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
      */
-    def run(directory: String, needsRenaming: Boolean): Unit = {
+    def run(directory: String, needsRenaming: Boolean, treatSecondaryTimestamps: Boolean): Unit = {
       TimestampUtilities.detectHiddenTimestampsOrDates(directory)
         .foreach {
           case (filePath: Path, ldt: LocalDateTime) =>
@@ -139,8 +142,9 @@ object UseCaseFactory {
      *
      * @param directory     [[String]] representation of directory path
      * @param needsRenaming Flag indicating whether file should be renamed
+     * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
      */
-    def run(directory: String, needsRenaming: Boolean = false): Unit = {
+    def run(directory: String, needsRenaming: Boolean, treatSecondaryTimestamps: Boolean): Unit = {
       FileUtilities.iterateFiles(directory)
         .foreach {
           filePath: Path =>

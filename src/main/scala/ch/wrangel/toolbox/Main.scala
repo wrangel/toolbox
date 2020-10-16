@@ -37,6 +37,8 @@ object Main extends App {
   UseCaseFactory(args(1)).run(
     args.head,
     Try { args(2).toBoolean }
+      .getOrElse(false),
+    Try { args.last.toBoolean }
       .getOrElse(false)
   )
 
