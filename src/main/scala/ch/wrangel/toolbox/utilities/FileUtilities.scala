@@ -32,8 +32,7 @@ object FileUtilities {
       .filter {
         filePath: Path =>
           val filePathString: String = filePath.toString
-          !Files.isHidden(filePath) &
-            !filePathString.contains("@") & {
+          !Files.isHidden(filePath) & { // !filePathString.contains("@") &
             Constants.ExcludedFileTypes
               .map {
                 fileType: String =>

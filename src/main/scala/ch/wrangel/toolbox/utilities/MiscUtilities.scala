@@ -69,7 +69,7 @@ object MiscUtilities extends LogSupport {
         filePath: Path =>
           if (Files.size(filePath) == 0) {
             zeroByteFiles += filePath.toString
-            error(s"Please remove $filePath, since it has byte size of 0")
+            info(s"Please remove $filePath, since it has byte size of 0")
           }
       }
     if (zeroByteFiles.nonEmpty)
@@ -107,7 +107,7 @@ object MiscUtilities extends LogSupport {
       case 0 =>
         Some(stdout.toString.trim)
       case _ =>
-        error(">>> NOT TREATED: " + stderr.toString.trim)
+        info(">>> NOT TREATED: " + stderr.toString.trim)
         None
     }
   }
