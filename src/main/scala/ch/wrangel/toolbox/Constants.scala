@@ -24,6 +24,7 @@ object Constants {
   /* Collection of [[DateTimeFormatter]] patterns for relevant timestamp groups */
   final val TimestampFormatters: Map[String, DateTimeFormatter] = Map(
     "exif" -> DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss"),
+    "exif2" -> DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
     "zonedExif" -> DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ssz"),
     "mac" -> DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss"),
     "file" -> DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
