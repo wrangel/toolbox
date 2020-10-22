@@ -68,6 +68,9 @@ object UseCaseFactory {
         Some(Constants.ReferenceExifTimestamps))
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
       Validate.run(directory, needsRenaming)
+
+      if(treatSecondaryTimestamps)
+        MiscUtilities.getProcessOutput("""osascript -e 'quit app "Preview"'""")
     }
 
     /** Handles principal timestamps
@@ -106,6 +109,7 @@ object UseCaseFactory {
         needsRenaming: Boolean
     ): Unit = {
       info(s"Handling secondary timestamps for $filePath")
+      MiscUtilities.getProcessOutput(s"""open -a Preview ${filePath.toString}""")
       val candidateTimestamps: Seq[LocalDateTime] =
         TimestampUtilities.getExifTimestamps(secondaryTimestamps).toSeq.sorted
       val options: Seq[(LocalDateTime, Int)] = candidateTimestamps.zipWithIndex
@@ -124,6 +128,7 @@ object UseCaseFactory {
           )
       } else
         info("No valid timestamps found")
+      MiscUtilities.getProcessOutput("""osascript -e 'tell application "Preview" to close first window'""")
     }
 
   }
