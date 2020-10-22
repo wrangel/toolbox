@@ -62,18 +62,17 @@ object MiscUtilities extends LogSupport {
    *
    * @param directory [[String]] representation of directory path
    */
-  def checkForZeroByteLengthFiles(directory: String): Unit = {
-    val zeroByteFiles: ListBuffer[String] = new ListBuffer[String]()
+  def handleZeroByteLengthFiles(directory: String): Unit = {
+    val zeroByteFiles: ListBuffer[Path] = ListBuffer()
     FileUtilities.iterateFiles(directory)
       .foreach {
         filePath: Path =>
           if (Files.size(filePath) == 0) {
-            zeroByteFiles += filePath.toString
-            info(s"Please remove $filePath, since it has byte size of 0")
+            info(s"Please check $filePath, since it has byte size of 0")
+            zeroByteFiles += filePath
           }
       }
-    if (zeroByteFiles.nonEmpty)
-      System.exit(0)
+    FileUtilities.moveFiles(zeroByteFiles, Paths.get(directory, Constants.ZeroByteFolder))
   }
 
   /** Splits a collection into multiple subsets, according to the [[Seq]] of indices provided

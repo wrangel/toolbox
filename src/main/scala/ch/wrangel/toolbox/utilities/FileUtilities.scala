@@ -61,18 +61,18 @@ object FileUtilities {
     )
   }
 
-  /** Handles failed files
+  /** Moves files
    *
-   * @param unsuccessfulFiles          [[ListBuffer]] containing failed files
-   * @param unsuccessfulFileParentPath [[Path]] to destination folder
+   * @param files          [[ListBuffer]] containing failed files
+   * @param fileParentPath [[Path]] to destination folder
    */
-  def moveFailedFiles(unsuccessfulFiles: ListBuffer[Path], unsuccessfulFileParentPath: Path): Unit = {
-    if (unsuccessfulFiles.nonEmpty) {
-      Files.createDirectories(unsuccessfulFileParentPath)
-      unsuccessfulFiles.foreach {
+  def moveFiles(files: ListBuffer[Path], fileParentPath: Path): Unit = {
+    if (files.nonEmpty) {
+      Files.createDirectories(fileParentPath)
+      files.foreach {
         filePath: Path =>
           try {
-            Files.move(filePath, Paths.get(unsuccessfulFileParentPath.toString, filePath.getFileName.toString))
+            Files.move(filePath, Paths.get(fileParentPath.toString, filePath.getFileName.toString))
           } catch {
             case _: java.nio.file.NoSuchFileException =>
           }

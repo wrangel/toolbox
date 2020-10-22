@@ -214,7 +214,7 @@ object UseCaseFactory {
               treatedFiles += ((filePath, LocalDateTime.now))
           }
         }
-      FileUtilities.moveFailedFiles(
+      FileUtilities.moveFiles(
         treatedFiles.map(_._1),
         Paths.get(directory, Constants.UnsuccessfulFolder)
       )

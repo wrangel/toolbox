@@ -33,7 +33,7 @@ import scala.util.Try
 object Main extends App {
 
   FileUtilities.createOrAdaptExifConfigFile()
-  MiscUtilities.checkForZeroByteLengthFiles(args.head)
+  MiscUtilities.handleZeroByteLengthFiles(args.head)
   UseCaseFactory(args(1)).run(
     args.head,
     Try { args(2).toBoolean }

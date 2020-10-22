@@ -92,6 +92,9 @@ object Constants {
   /** Folder name for files having undergone unsuccessful exif manipulation */
   final val UnsuccessfulFolder: String = "_unsuccessful"
 
+  /* Folder name for files having zero byte size */
+  final val ZeroByteFolder: String = "__zeroByte"
+
   /** Excluded file types */
   final val ExcludedFileTypes: Seq[String] = Seq(".txt")
 
