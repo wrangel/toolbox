@@ -40,6 +40,7 @@ object UseCaseFactory {
       FileUtilities
         .iterateFiles(directory)
         .foreach { filePath: Path =>
+          info(s"Treating $filePath")
           val (
             principalTimestamps: Map[String, Option[LocalDateTime]],
             secondaryTimestamps: Map[String, Option[LocalDateTime]]
@@ -61,7 +62,7 @@ object UseCaseFactory {
                                       filePath,
                                       needsRenaming)
           else
-            info(s"Omitting $filePath")
+            info(s"Omitting file")
         }
       TimestampUtilities.writeTimestamps(
         treatedFiles.toMap,
@@ -69,7 +70,7 @@ object UseCaseFactory {
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
       Validate.run(directory, needsRenaming)
 
-      if(treatSecondaryTimestamps)
+      if (treatSecondaryTimestamps)
         MiscUtilities.getProcessOutput("""osascript -e 'quit app "Preview"'""")
     }
 
@@ -84,7 +85,7 @@ object UseCaseFactory {
         filePath: Path,
         needsRenaming: Boolean
     ): Unit = {
-      info(s"Handling principal timestamps for $filePath")
+      info("Handling principal timestamps")
       TimestampUtilities
         .getExifTimestamps(principalTimestamps)
         .headOption match {
@@ -108,8 +109,9 @@ object UseCaseFactory {
         filePath: Path,
         needsRenaming: Boolean
     ): Unit = {
-      info(s"Handling secondary timestamps for $filePath")
-      MiscUtilities.getProcessOutput(s"""open -a Preview ${filePath.toString}""")
+      info("Handling secondary timestamps")
+      MiscUtilities.getProcessOutput(
+        s"""open -a Preview ${filePath.toString}""")
       val candidateTimestamps: Seq[LocalDateTime] =
         TimestampUtilities.getExifTimestamps(secondaryTimestamps).toSeq.sorted
       val options: Seq[(LocalDateTime, Int)] = candidateTimestamps.zipWithIndex
@@ -127,7 +129,8 @@ object UseCaseFactory {
           )
       } else
         info("No valid timestamps found")
-      MiscUtilities.getProcessOutput("""osascript -e 'tell application "Preview" to close first window'""")
+      MiscUtilities.getProcessOutput(
+        """osascript -e 'tell application "Preview" to close first window'""")
     }
 
   }
