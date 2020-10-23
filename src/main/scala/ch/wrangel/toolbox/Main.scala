@@ -25,10 +25,6 @@ import scala.util.Try
  * - 3) validate
  *      To check if the timestamp in file name and DateTimeOriginal / Create Date coincide. Move to a sub folder
  *      otherwise
- *
- * TODO video
- * - Establish which create dates are used by photo programs - adapt "Validate" and create consistent framework
- * - MiscUtilities.convertVideo(directory) a) as part of a use case, b) extended to AVI
  */
 object Main extends App {
 

@@ -73,12 +73,6 @@ object Constants {
   /** Default [[String]] for imputing as day of month into dates */
   final val DefaultDay: String = "01"
 
-  /** Problematic video formats */
-  final val ProblematicVideoFormats: Seq[String] = Seq(".mpg")
-
-  /** Target video format */
-  final val TargetVideoFormat: String = ".mp4"
-
   /** [[Path]] to exif config file */
   final val ExifToolConfigFilePath: Path = Paths.get(System.getProperty("user.dir"), "exif.config")
 
@@ -88,9 +82,6 @@ object Constants {
 
   /** Exif tool base command */
   final val ExifToolBaseCommand: String = s"/usr/local/bin/exiftool -config $ExifToolConfigFilePath"
-
-  /** Ffmpeg binary */
-  final val FfmpegBinary: String = "/usr/local/bin/ffmpeg"
 
   /** Folder name for files having undergone unsuccessful exif manipulation */
   final val UnsuccessfulFolder: String = "_unsuccessful"
