@@ -3,12 +3,7 @@ package ch.wrangel.toolbox
 import java.nio.file.{Path, Paths}
 import java.time.LocalDateTime
 
-import ch.wrangel.toolbox.utilities.{
-  FileUtilities,
-  MiscUtilities,
-  StringUtilities,
-  TimestampUtilities
-}
+import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities, StringUtilities, TimestampUtilities}
 
 import scala.util.{Failure, Success, Try}
 
@@ -62,7 +57,7 @@ object UseCaseFactory {
                                       filePath,
                                       needsRenaming)
           else
-            info(s"Omitting file")
+            info(s"   Omitting file")
         }
       TimestampUtilities.writeTimestamps(
         treatedFiles.toMap,
@@ -85,7 +80,7 @@ object UseCaseFactory {
         filePath: Path,
         needsRenaming: Boolean
     ): Unit = {
-      info("Handling principal timestamps")
+      info("    Handling principal timestamps")
       TimestampUtilities
         .getExifTimestamps(principalTimestamps)
         .headOption match {
@@ -109,7 +104,7 @@ object UseCaseFactory {
         filePath: Path,
         needsRenaming: Boolean
     ): Unit = {
-      info("Handling secondary timestamps")
+      info("    Handling secondary timestamps")
       MiscUtilities.getProcessOutput(
         s"""open -a Preview ${filePath.toString}""")
       val candidateTimestamps: Seq[LocalDateTime] =
@@ -128,7 +123,7 @@ object UseCaseFactory {
             needsRenaming = needsRenaming
           )
       } else
-        info("No valid timestamps found")
+        info("    No valid timestamps found")
       MiscUtilities.getProcessOutput(
         """osascript -e 'tell application "Preview" to close first window'""")
     }
@@ -151,6 +146,7 @@ object UseCaseFactory {
         .detectHiddenTimestampsOrDates(directory)
         .foreach {
           case (filePath: Path, ldt: LocalDateTime) =>
+            info(s"Treating $filePath")
             treatedFiles += MiscUtilities.prepareFile(filePath,
                                                       ldt,
                                                       needsRenaming =
