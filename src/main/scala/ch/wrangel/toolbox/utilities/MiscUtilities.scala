@@ -106,7 +106,7 @@ object MiscUtilities extends LogSupport {
       case 0 =>
         Some(stdout.toString.trim)
       case _ =>
-        info(">>> NOT TREATED: " + stderr.toString.trim)
+        info(">>> Not treated: " + stderr.toString.trim)
         None
     }
   }
@@ -120,7 +120,7 @@ object MiscUtilities extends LogSupport {
   @scala.annotation.tailrec
   def getFeedback(message: String = "", validRange: Seq[String]): String = {
     val addendum: String = s"Please select one of (${validRange.mkString(", ")})\n"
-    val feedback: String = StdIn.readLine(message.trim + "\n" + addendum)
+      val feedback: String = StdIn.readLine(message.trim + "\n" + addendum)
     if(validRange.contains(feedback))
       feedback
     else

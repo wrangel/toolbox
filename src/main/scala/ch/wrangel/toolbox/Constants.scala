@@ -9,6 +9,9 @@ import scala.util.matching.Regex
 /* Holds project wide constants */
 object Constants {
 
+  /* Key for expressing not applicable timestamp while checking secondary timestamps */
+  final val NonApplicableKey: String = "-"
+
   /* Collection of reference exif timestamps */
   final val ReferenceExifTimestamps: Seq[String] = Seq(
     "DateTimeOriginal",

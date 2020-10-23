@@ -114,16 +114,15 @@ object UseCaseFactory {
         TimestampUtilities.getExifTimestamps(secondaryTimestamps).toSeq.sorted
       val options: Seq[(LocalDateTime, Int)] = candidateTimestamps.zipWithIndex
       if (candidateTimestamps.nonEmpty) {
-        val feedback: Int = MiscUtilities
+        val feedback: String = MiscUtilities
           .getFeedback(
-            options.mkString("\n") + "\nNone of those: -1\n",
-            (-1 until options.size).map(_.toString)
+            options.mkString("\n") + "\nNone of those: -\n",
+            Constants.NonApplicableKey +: options.map(_._2.toString)
           )
-          .toInt
-        if (feedback > -1)
+        if (feedback != Constants.NonApplicableKey)
           treatedFiles2 += MiscUtilities.prepareFile(
             filePath,
-            candidateTimestamps(feedback),
+            candidateTimestamps(feedback.toInt),
             needsRenaming = needsRenaming
           )
       } else
