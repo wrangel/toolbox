@@ -9,11 +9,6 @@ object StringUtilities {
    * @return [[Array]] of [[String]] [[Array]]s in a processable format
    */
   def prepareExifToolOutput(command: String): Array[Array[String]] = {
-
-    val a = MiscUtilities.getProcessOutput(command)
-      .get
-
-
     MiscUtilities.getProcessOutput(command)
       .get
       .split("\n")

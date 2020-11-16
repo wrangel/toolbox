@@ -177,6 +177,7 @@ object UseCaseFactory {
         .foreach { filePath: Path =>
           val fileName: String =
             FileUtilities.splitExtension(filePath, isPathNeeded = false).head
+          // 1) Check if file has valid timestamp
           TimestampUtilities.convertStringToTimestamp(
             Try {
               fileName.substring(0, fileName.indexOf(Constants.PartitionString))
@@ -190,16 +191,22 @@ object UseCaseFactory {
           ) match {
             case Some(extractedFileTimestamp: LocalDateTime) =>
               val tag: String = Constants.ReferenceExifTimestamps(1) // Create date time matters
+              // 2) Check if shell command returns valid stdout
               StringUtilities
                 .prepareExifToolOutput(
                   s"""${Constants.ExifToolBaseCommand} -s -$tag "$filePath""""
                 )
                 .headOption match {
                 case Some(element: Array[String]) =>
-                  TimestampUtilities.convertStringToTimestamp(
-                    element.last,
-                    Constants.TimestampFormatters("exif")
-                  ) match {
+                  // 3) Check if String exif timestamp can be converted to a real timestamp
+                  Constants.TimestampFormatters
+                    .flatMap(
+                      ts =>
+                        TimestampUtilities.convertStringToTimestamp(
+                          element.last,
+                          ts._2
+                      ))
+                    .headOption match {
                     case Some(ldt: LocalDateTime) =>
                       info(
                         s"Looking at $filePath with file timestamp $extractedFileTimestamp" +
@@ -208,12 +215,17 @@ object UseCaseFactory {
                       if (!extractedFileTimestamp.equals(ldt))
                         treatedFiles += ((filePath, LocalDateTime.now))
                     case None =>
+                      info(
+                        s"   String exif timestamp for $filePath cannot be converted to timestamp")
                       treatedFiles += ((filePath, LocalDateTime.now))
                   }
                 case None =>
+                  info(
+                    s"   Shell command returns no valid output for $filePath")
                   treatedFiles += ((filePath, LocalDateTime.now))
               }
             case None =>
+              info(s"   Filename of $filePath contains no valid timestamp")
               treatedFiles += ((filePath, LocalDateTime.now))
           }
         }
@@ -222,7 +234,7 @@ object UseCaseFactory {
         Paths.get(directory, Constants.UnsuccessfulFolder)
       )
     }
-
+  
   }
 
   /** Factory method
