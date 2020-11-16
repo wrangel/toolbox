@@ -24,7 +24,7 @@ object MiscUtilities extends LogSupport {
   def prepareFile(filePath: Path,
                   ldt: LocalDateTime,
                   needsRenaming: Boolean): (Path, LocalDateTime) = {
-    info("    Adding file to list of files which need manipulation")
+    info(s"Adding $filePath to list of files which need manipulation")
     (
       if (needsRenaming)
         TimestampUtilities.renameFileWithTimestamp(filePath, ldt)
@@ -84,7 +84,7 @@ object MiscUtilities extends LogSupport {
       case 0 =>
         Some(stdout.toString.trim)
       case _ =>
-        info("    Not treated: " + stderr.toString.trim)
+        info("Not treated: " + stderr.toString.trim)
         None
     }
   }

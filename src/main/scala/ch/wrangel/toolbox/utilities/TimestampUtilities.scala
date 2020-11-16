@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, LocalTime, YearMonth, ZonedDateTime}
 
 import ch.wrangel.toolbox.Constants
-import ch.wrangel.toolbox.utilities.StringUtilities.prepareExifToolOutput
 import wvlet.log.LogSupport
 
 import scala.collection.mutable.ListBuffer
@@ -17,12 +16,10 @@ object TimestampUtilities extends LogSupport {
   /** Adjusts both Mac OS and exif timestamps
     *
     * @param fileToDateMap [[Map]] from file [[Path]] to the file's [[LocalDateTime]]
-    * @param excludedExifTags Optional [[Seq]] of exif timestamps which should not be written. Default is None
     */
-  def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime],
-                      excludedExifTags: Option[Seq[String]] = None): Unit = {
+  def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime]): Unit = {
     if (fileToDateMap.nonEmpty) {
-      writeExifTimestamps(fileToDateMap, excludedExifTags)
+      writeExifTimestamps(fileToDateMap)
       writeMacTimestamps(fileToDateMap)
     }
   }
@@ -45,7 +42,7 @@ object TimestampUtilities extends LogSupport {
             ) match {
               case Some(_) =>
                 info(
-                  s"    Mac: Successfully changed $macTag of $filePath to $newDate")
+                  s"Mac: Successfully changed $macTag of $filePath to $newDate")
               case None =>
             }
           }
@@ -55,7 +52,6 @@ object TimestampUtilities extends LogSupport {
   /** Newly writes exif timestamps
     *
     * @param fileNameToTimestampMap [[Map]] containing the file [[Path]] as well as the file's [[LocalDateTime]]
-    * @param optionalExcludedExifTags Optional [[Seq]] of exif timestamps which should not be written. Default is None
     */
   private def writeExifTimestamps(
       fileNameToTimestampMap: Map[Path, LocalDateTime],
@@ -63,28 +59,16 @@ object TimestampUtilities extends LogSupport {
   ): Unit = {
     fileNameToTimestampMap.foreach {
       case (filePath: Path, ldt: LocalDateTime) =>
-        getExifTimestampTags(filePath)._2
-          .filter { exifTag: String =>
-            optionalExcludedExifTags match {
-              case Some(excludedExifTags: Seq[String]) =>
-                !excludedExifTags.contains(exifTag)
-              case None =>
-                true
-            }
-          }
-          .map { exifTag: String =>
-            val newDate: String =
-              ldt.format(Constants.TimestampFormatters("exif"))
-            MiscUtilities.getProcessOutput(
-              s"""${Constants.ExifToolBaseCommand}
-                   |-m -EXIF:ExifIFD:$exifTag="$newDate" -overwrite_original "$filePath""""
-            ) match {
-              case Some(_) =>
-                info(
-                  s"    Exif: Successfully changed $exifTag of $filePath to $newDate")
-              case None =>
-            }
-          }
+        val newDate: String =
+          ldt.format(Constants.TimestampFormatters("exif"))
+        MiscUtilities.getProcessOutput(
+          s"""${Constants.ExifToolBaseCommand} -overwrite_original -wm w -time:all="$newDate" "$filePath""""
+        ) match {
+          case Some(_) =>
+            info(
+              s"Exif: Successfully changed exif tags of $filePath to $newDate")
+          case None =>
+        }
     }
   }
 
@@ -313,21 +297,6 @@ object TimestampUtilities extends LogSupport {
   def getExifTimestamps(timestamps: Map[String, Option[LocalDateTime]])
     : Iterable[LocalDateTime] = {
     timestamps.values.flatten
-  }
-
-  /** Gets all exif timestamp tags available for the file
-    *
-    * @param filePath [[Path]] to the file
-    * @return Mapping from file [[Path]] to the file's exif timestamp tags
-    */
-  def getExifTimestampTags(filePath: Path): (Path, Seq[String]) = {
-    filePath -> Constants.ReferenceExifTimestamps
-      .concat(
-        prepareExifToolOutput(
-          constructExifToolGetAllTimestampsCommand(filePath))
-          .map(_.head)
-      )
-      .distinct
   }
 
   /** Constructs the ExifTool command to extract all timestamps

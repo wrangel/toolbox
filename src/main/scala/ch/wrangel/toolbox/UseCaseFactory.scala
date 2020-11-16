@@ -57,11 +57,9 @@ object UseCaseFactory {
                                       filePath,
                                       needsRenaming)
           else
-            info(s"   Omitting file")
+            info(s"Omitting file")
         }
-      TimestampUtilities.writeTimestamps(
-        treatedFiles.toMap,
-        Some(Constants.ReferenceExifTimestamps))
+      TimestampUtilities.writeTimestamps(treatedFiles.toMap)
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
       Validate.run(directory, needsRenaming)
 
@@ -80,7 +78,7 @@ object UseCaseFactory {
         filePath: Path,
         needsRenaming: Boolean
     ): Unit = {
-      info("    Handling principal timestamps")
+      info("Handling principal timestamps")
       TimestampUtilities
         .getExifTimestamps(principalTimestamps)
         .headOption match {
@@ -104,7 +102,7 @@ object UseCaseFactory {
         filePath: Path,
         needsRenaming: Boolean
     ): Unit = {
-      info("    Handling secondary timestamps")
+      info("Handling secondary timestamps")
       MiscUtilities.getProcessOutput(
         s"""open -a Preview ${filePath.toString}""")
       val candidateTimestamps: Seq[LocalDateTime] =
@@ -123,7 +121,7 @@ object UseCaseFactory {
             needsRenaming = needsRenaming
           )
       } else
-        info("    No valid timestamps found")
+        info("No valid timestamps found")
       MiscUtilities.getProcessOutput(
         """osascript -e 'tell application "Preview" to close first window'""")
     }
@@ -210,13 +208,13 @@ object UseCaseFactory {
                     case Some(ldt: LocalDateTime) =>
                       info(
                         s"Looking at $filePath with file timestamp $extractedFileTimestamp" +
-                          s" and $ldt ($tag)"
+                          s" and $tag $ldt"
                       )
                       if (!extractedFileTimestamp.equals(ldt))
                         treatedFiles += ((filePath, LocalDateTime.now))
                     case None =>
                       info(
-                        s"   String exif timestamp for $filePath cannot be converted to timestamp")
+                        s"   Exif timestamp for $filePath cannot be converted to proper timestamp")
                       treatedFiles += ((filePath, LocalDateTime.now))
                   }
                 case None =>
