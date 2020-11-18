@@ -214,16 +214,16 @@ object UseCaseFactory {
                         treatedFiles += ((filePath, LocalDateTime.now))
                     case None =>
                       info(
-                        s"   Exif timestamp for $filePath cannot be converted to proper timestamp")
+                        s"Exif timestamp for $filePath cannot be converted to proper timestamp")
                       treatedFiles += ((filePath, LocalDateTime.now))
                   }
                 case None =>
                   info(
-                    s"   Shell command returns no valid output for $filePath")
+                    s"Shell command returns no valid output for $filePath")
                   treatedFiles += ((filePath, LocalDateTime.now))
               }
             case None =>
-              info(s"   Filename of $filePath contains no valid timestamp")
+              info(s"Filename of $filePath contains no valid timestamp")
               treatedFiles += ((filePath, LocalDateTime.now))
           }
         }

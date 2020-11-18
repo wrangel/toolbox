@@ -59,6 +59,7 @@ object TimestampUtilities extends LogSupport {
   ): Unit = {
     fileNameToTimestampMap.foreach {
       case (filePath: Path, ldt: LocalDateTime) =>
+        createDates(filePath)
         val newDate: String =
           ldt.format(Constants.TimestampFormatters("exif"))
         MiscUtilities.getProcessOutput(
@@ -69,6 +70,20 @@ object TimestampUtilities extends LogSupport {
               s"Exif: Successfully changed exif tags of $filePath to $newDate")
           case None =>
         }
+    }
+  }
+
+  /** Creates reference tags (CreateDate and DateTimeOriginal) if not existing
+   *
+   * @param filePath [[Path]] to the file
+   */
+  private def createDates(filePath: Path): Unit = {
+    Constants.ReferenceExifTimestamps.foreach { ret: String =>
+      val retl: String = ret.toLowerCase()
+      MiscUtilities.getProcessOutput(
+        s"""${Constants.ExifToolBaseCommand} -if 'not $$retl' -$retl=now
+           |"-$retl<$retl" -overwrite_original "$filePath"""".stripMargin
+      )
     }
   }
 
