@@ -152,12 +152,12 @@ object TimestampUtilities extends LogSupport {
           filePath)) {
       val newFileName: String =
         timestamp + Constants.PartitionString + oldFileName
-      info(s"   Renaming $oldFileName to $newFileName")
+      info(s"Renaming $oldFileName to $newFileName")
       val newPath: Path = filePath.resolveSibling(newFileName)
       Files.move(filePath, newPath)
       newPath
     } else {
-      info(s"   No need to rename $oldFileName")
+      info(s"No need to rename $oldFileName")
       filePath
     }
   }
