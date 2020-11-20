@@ -24,7 +24,6 @@ object MiscUtilities extends LogSupport {
   def prepareFile(filePath: Path,
                   ldt: LocalDateTime,
                   needsRenaming: Boolean): (Path, LocalDateTime) = {
-    info(s"Adding $filePath to list of files which need manipulation")
     (
       if (needsRenaming)
         TimestampUtilities.renameFileWithTimestamp(filePath, ldt)
