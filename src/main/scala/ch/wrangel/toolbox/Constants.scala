@@ -36,7 +36,7 @@ object Constants {
   /* String indicating a partition */
   final val PartitionString: String = "__"
 
-  /** Patterns to detect timestamps or dates hidden in filenames */
+  /** Patterns to detect timestamps or dates hidden in file names */
   final val TimestampAndDatePatterns: Seq[Regex] = Seq(
     // Timestamps
     "[0-9]{4}[-,_,/,., ][0-9]{2}[-,_,/,., ][0-9]{2}[-,_,/,., ][0-9]{2}[-,_,/,., ][0-9]{2}[-,_,/,., ][0-9]{2}",

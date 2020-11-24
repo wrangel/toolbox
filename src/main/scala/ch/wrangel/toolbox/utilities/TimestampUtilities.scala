@@ -135,11 +135,11 @@ object TimestampUtilities extends LogSupport {
         }
     }
 
-  /** Renames a file, if necessary (i.e. the file does not already bear exactly the same filename)
+  /** Renames a file, if necessary (i.e. the file does not already bear exactly the same file name)
     *
     * @param filePath [[Path]] to the file
     * @param ldt      [[LocalDateTime]] to be used for renaming
-    * @return [[Path]] to the renamed filename
+    * @return [[Path]] to the renamed file name
     */
   def renameFileWithTimestamp(filePath: Path, ldt: LocalDateTime): Path = {
     val filePathComponents: Seq[String] =
@@ -160,7 +160,7 @@ object TimestampUtilities extends LogSupport {
     }
   }
 
-  /** Detects timestamps / dates in filenames. Filenames without valid timestamps / dates are omitted
+  /** Detects timestamps / dates in file names. File names without valid timestamps / dates are omitted
     *
     * @param directory [[String]] representation of path of directory
     * @return [[Map]] containing file [[Path]]s as keys, and valid [[LocalDateTime]]s as values.
