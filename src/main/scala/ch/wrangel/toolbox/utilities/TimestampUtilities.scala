@@ -41,8 +41,7 @@ object TimestampUtilities extends LogSupport {
               s"""SetFile -$macTag "$newDate" "${filePath.toString}""""
             ) match {
               case Some(_) =>
-                info(
-                  s"Mac: Successfully changed $macTag of $filePath to $newDate")
+                info(s"Mac: Changed $macTag to $newDate")
               case None =>
             }
           }
@@ -66,8 +65,7 @@ object TimestampUtilities extends LogSupport {
           s"""${Constants.ExifToolBaseCommand} -overwrite_original -wm w -time:all="$newDate" "$filePath""""
         ) match {
           case Some(_) =>
-            info(
-              s"Exif: Successfully changed exif tags of $filePath to $newDate")
+            info(s"Exif: Changed exif tags to $newDate")
           case None =>
         }
     }
@@ -287,7 +285,7 @@ object TimestampUtilities extends LogSupport {
                                      Constants.TimestampFormatters("file")).get)
         }.getOrElse {
             MiscUtilities.getFeedback(
-              s"Is $date of $filePath a valid partial date?",
+              s"Is $date a valid partial date?",
               Seq("y", "n")
             ) match {
               case "y" =>

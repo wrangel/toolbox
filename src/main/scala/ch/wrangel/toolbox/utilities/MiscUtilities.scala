@@ -43,7 +43,7 @@ object MiscUtilities extends LogSupport {
       .iterateFiles(directory)
       .foreach { filePath: Path =>
         if (Files.size(filePath) == 0) {
-          info(s"Please check $filePath, since it has byte size of 0")
+          info("! File byte size is 0")
           zeroByteFiles += filePath
         }
       }
@@ -83,7 +83,7 @@ object MiscUtilities extends LogSupport {
       case 0 =>
         Some(stdout.toString.trim)
       case _ =>
-        info("Not treated: " + stderr.toString.trim)
+        info(stderr.toString.trim)
         None
     }
   }

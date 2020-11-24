@@ -35,7 +35,7 @@ object UseCaseFactory {
       FileUtilities
         .iterateFiles(directory)
         .foreach { filePath: Path =>
-          info(s"Treating $filePath")
+          info(s"===>>> Treating $filePath <<<===")
           val (
             principalTimestamps: Map[String, Option[LocalDateTime]],
             secondaryTimestamps: Map[String, Option[LocalDateTime]]
@@ -57,7 +57,7 @@ object UseCaseFactory {
                                       filePath,
                                       needsRenaming)
           else
-            info(s"Omitting file")
+            info("! Omitting file")
         }
       TimestampUtilities.writeTimestamps(treatedFiles.toMap)
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
@@ -121,7 +121,7 @@ object UseCaseFactory {
             needsRenaming = needsRenaming
           )
       } else
-        info("No valid timestamps found")
+        info("! No valid timestamps found")
       MiscUtilities.getProcessOutput(
         """osascript -e 'tell application "Preview" to close first window'""")
     }
@@ -144,7 +144,7 @@ object UseCaseFactory {
         .detectHiddenTimestampsOrDates(directory)
         .foreach {
           case (filePath: Path, ldt: LocalDateTime) =>
-            info(s"Treating $filePath")
+            info(s"===>>> Treating $filePath <<<===")
             treatedFiles += MiscUtilities.prepareFile(filePath,
                                                       ldt,
                                                       needsRenaming =
@@ -173,6 +173,7 @@ object UseCaseFactory {
       FileUtilities
         .iterateFiles(directory)
         .foreach { filePath: Path =>
+          info(s"===>>> Validating $filePath <<<===")
           val fileName: String =
             FileUtilities.splitExtension(filePath, isPathNeeded = false).head
           // 1) Check if file has valid timestamp
@@ -188,42 +189,47 @@ object UseCaseFactory {
             Constants.TimestampFormatters("file")
           ) match {
             case Some(extractedFileTimestamp: LocalDateTime) =>
-              val tag: String = Constants.ReferenceExifTimestamps(1) // Create date time matters
-              // 2) Check if shell command returns valid stdout
-              StringUtilities
-                .prepareExifToolOutput(
-                  s"""${Constants.ExifToolBaseCommand} -s -$tag "$filePath""""
-                )
-                .headOption match {
-                case Some(element: Array[String]) =>
-                  // 3) Check if String exif timestamp can be converted to a real timestamp
-                  Constants.TimestampFormatters
-                    .flatMap(
-                      ts =>
-                        TimestampUtilities.convertStringToTimestamp(
-                          element.last,
-                          ts._2
-                      ))
+              // Check for each relevant exif timestamp
+              Constants.ReferenceExifTimestamps
+                .foreach {tag: String =>
+                  // 2) Check if shell command returns valid stdout
+                  StringUtilities
+                    .prepareExifToolOutput(
+                      s"""${Constants.ExifToolBaseCommand} -s -$tag "$filePath""""
+                    )
                     .headOption match {
-                    case Some(ldt: LocalDateTime) =>
-                      info(
-                        s"Looking at $filePath with file timestamp $extractedFileTimestamp" +
-                          s" and $tag $ldt"
-                      )
-                      if (!extractedFileTimestamp.equals(ldt))
-                        treatedFiles += ((filePath, LocalDateTime.now))
+                    case Some(element: Array[String]) =>
+                      // 3) Check if String exif timestamp can be converted to a real timestamp
+                      Constants.TimestampFormatters
+                        .flatMap(
+                          ts =>
+                            TimestampUtilities.convertStringToTimestamp(
+                              element.last,
+                              ts._2
+                            ))
+                        .headOption match {
+                        case Some(ldt: LocalDateTime) =>
+                          info(
+                            s"Comparing file timestamp $extractedFileTimestamp" +
+                              s" with $tag $ldt"
+                          )
+                          if (!extractedFileTimestamp.equals(ldt)) {
+                            info(s"! Timestamps do not match")
+                            treatedFiles += ((filePath, LocalDateTime.now))
+                          }
+                          else
+                            info(s"Timestamps match")
+                        case None =>
+                          info(s"! $tag cannot be converted to properly")
+                          treatedFiles += ((filePath, LocalDateTime.now))
+                      }
                     case None =>
-                      info(
-                        s"Exif timestamp for $filePath cannot be converted to proper timestamp")
+                      info(s"! Shell command returns no valid output")
                       treatedFiles += ((filePath, LocalDateTime.now))
                   }
-                case None =>
-                  info(
-                    s"Shell command returns no valid output for $filePath")
-                  treatedFiles += ((filePath, LocalDateTime.now))
-              }
+                }
             case None =>
-              info(s"Filename of $filePath contains no valid timestamp")
+              info(s"! file timestamp contains no valid timestamp")
               treatedFiles += ((filePath, LocalDateTime.now))
           }
         }
