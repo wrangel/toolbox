@@ -35,7 +35,6 @@ object UseCaseFactory {
       FileUtilities
         .iterateFiles(directory)
         .foreach { filePath: Path =>
-          info(s"===>>> Treating $filePath <<<===")
           val (
             principalTimestamps: Map[String, Option[LocalDateTime]],
             secondaryTimestamps: Map[String, Option[LocalDateTime]]
@@ -57,7 +56,7 @@ object UseCaseFactory {
                                       filePath,
                                       needsRenaming)
           else
-            info("! Omitting file")
+            info(s"! Omitting $filePath")
         }
       TimestampUtilities.writeTimestamps(treatedFiles.toMap)
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
@@ -144,7 +143,6 @@ object UseCaseFactory {
         .detectHiddenTimestampsOrDates(directory)
         .foreach {
           case (filePath: Path, ldt: LocalDateTime) =>
-            info(s"===>>> Treating $filePath <<<===")
             treatedFiles += MiscUtilities.prepareFile(filePath,
                                                       ldt,
                                                       needsRenaming =
@@ -197,7 +195,7 @@ object UseCaseFactory {
                   }
                 }
             case None =>
-              info(s"! file timestamp contains no valid timestamp")
+              info(s"! $filePath file timestamp contains no valid timestamp")
               treatedFiles += ((filePath, LocalDateTime.now))
           }
         }

@@ -26,7 +26,7 @@ object MiscUtilities extends LogSupport {
                   needsRenaming: Boolean): (Path, LocalDateTime) = {
     (
       if (needsRenaming)
-        TimestampUtilities.renameFileWithTimestamp(filePath, ldt)
+        TimestampUtilities.writeTimestampInFilename(filePath, ldt)
       else
         filePath,
       ldt
@@ -43,7 +43,7 @@ object MiscUtilities extends LogSupport {
       .iterateFiles(directory)
       .foreach { filePath: Path =>
         if (Files.size(filePath) == 0) {
-          info("! File byte size is 0")
+          info(s"! $filePath byte size is 0")
           zeroByteFiles += filePath
         }
       }

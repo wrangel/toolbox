@@ -28,8 +28,7 @@ object TimestampUtilities extends LogSupport {
     *
     * @param fileNameToTimestampMap [[Map]] containing the file [[Path]] as well as the file's [[LocalDateTime]]
     */
-  def writeMacTimestamps(
-      fileNameToTimestampMap: Map[Path, LocalDateTime]): Unit = {
+  def writeMacTimestamps(fileNameToTimestampMap: Map[Path, LocalDateTime]): Unit = {
     fileNameToTimestampMap.keys
       .foreach { filePath: Path =>
         Constants.MacOsTimestampTags.values
@@ -41,6 +40,7 @@ object TimestampUtilities extends LogSupport {
               s"""SetFile -$macTag "$newDate" "${filePath.toString}""""
             ) match {
               case Some(_) =>
+                info(s"===>>> Treating $filePath <<<===")
                 info(s"Mac: Changed $macTag to $newDate")
               case None =>
             }
@@ -65,6 +65,7 @@ object TimestampUtilities extends LogSupport {
           s"""${Constants.ExifToolBaseCommand} -overwrite_original -wm w -time:all="$newDate" "$filePath""""
         ) match {
           case Some(_) =>
+            info(s"===>>> Treating $filePath <<<===")
             info(s"Exif: Changed exif tags to $newDate")
           case None =>
         }
@@ -141,7 +142,7 @@ object TimestampUtilities extends LogSupport {
     * @param ldt      [[LocalDateTime]] to be used for renaming
     * @return [[Path]] to the renamed file name
     */
-  def renameFileWithTimestamp(filePath: Path, ldt: LocalDateTime): Path = {
+  def writeTimestampInFilename(filePath: Path, ldt: LocalDateTime): Path = {
     val filePathComponents: Seq[String] =
       FileUtilities.splitExtension(filePath, isPathNeeded = false)
     val oldFileName: String = filePathComponents.mkString("")
@@ -150,6 +151,7 @@ object TimestampUtilities extends LogSupport {
           filePath)) {
       val newFileName: String =
         timestamp + Constants.PartitionString + oldFileName
+      info(s"===>>> Treating $filePath <<<===")
       info(s"Renaming $oldFileName to $newFileName")
       val newPath: Path = filePath.resolveSibling(newFileName)
       Files.move(filePath, newPath)
