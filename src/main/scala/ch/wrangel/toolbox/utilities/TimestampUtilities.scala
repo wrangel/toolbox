@@ -40,7 +40,7 @@ object TimestampUtilities extends LogSupport {
               s"""SetFile -$macTag "$newDate" "${filePath.toString}""""
             ) match {
               case Some(_) =>
-                info(s"===>>> Treating $filePath <<<===")
+                info(s"===>>> Treating $filePath")
                 info(s"Mac: Changed $macTag to $newDate")
               case None =>
             }
@@ -65,7 +65,7 @@ object TimestampUtilities extends LogSupport {
           s"""${Constants.ExifToolBaseCommand} -overwrite_original -wm w -time:all="$newDate" "$filePath""""
         ) match {
           case Some(_) =>
-            info(s"===>>> Treating $filePath <<<===")
+            info(s"===>>> Treating $filePath")
             info(s"Exif: Changed exif tags to $newDate")
           case None =>
         }
@@ -151,7 +151,7 @@ object TimestampUtilities extends LogSupport {
           filePath)) {
       val newFileName: String =
         timestamp + Constants.PartitionString + oldFileName
-      info(s"===>>> Treating $filePath <<<===")
+      info(s"===>>> Treating $filePath")
       info(s"Renaming $oldFileName to $newFileName")
       val newPath: Path = filePath.resolveSibling(newFileName)
       Files.move(filePath, newPath)

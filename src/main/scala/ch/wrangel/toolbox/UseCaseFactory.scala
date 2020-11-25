@@ -171,7 +171,7 @@ object UseCaseFactory {
       FileUtilities
         .iterateFiles(directory)
         .foreach { filePath: Path =>
-          info(s"===>>> Validating $filePath <<<===")
+          info(s"===>>> Validating $filePath")
           // 1) Check if file has valid timestamp
           checkFileTimestamp(filePath: Path) match {
             case Some(filenameTimestamp: LocalDateTime) =>
