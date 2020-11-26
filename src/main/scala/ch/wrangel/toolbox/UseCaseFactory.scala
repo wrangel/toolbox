@@ -186,7 +186,7 @@ object UseCaseFactory {
                         case Some(exifTimestamp: LocalDateTime) =>
                           compareTimestamps(filePath, filenameTimestamp, exifTimestamp, tag)
                         case None =>
-                          info(s"! $tag cannot be converted to properly")
+                          info(s"! $tag cannot be converted properly")
                           treatedFiles += ((filePath, LocalDateTime.now))
                       }
                     case None =>
