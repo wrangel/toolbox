@@ -41,7 +41,7 @@ object TimestampUtilities extends LogSupport {
             ) match {
               case Some(_) =>
                 info(s"===>>> Treating $filePath")
-                info(s"Mac: Changed $macTag to $newDate")
+                info(s"Changed mac tag $macTag to $newDate")
               case None =>
             }
           }
@@ -66,7 +66,7 @@ object TimestampUtilities extends LogSupport {
         ) match {
           case Some(_) =>
             info(s"===>>> Treating $filePath")
-            info(s"Exif: Changed exif tags to $newDate")
+            info(s"Changed exif tags to $newDate")
           case None =>
         }
     }
