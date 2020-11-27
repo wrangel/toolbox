@@ -56,7 +56,7 @@ object UseCaseFactory {
                                       filePath,
                                       needsRenaming)
           else
-            info(s"! Omitting $filePath")
+            info(s"======== ! Omitting $filePath")
         }
       TimestampUtilities.writeTimestamps(treatedFiles.toMap)
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
@@ -171,7 +171,7 @@ object UseCaseFactory {
       FileUtilities
         .iterateFiles(directory)
         .foreach { filePath: Path =>
-          info(s"===>>> Validating $filePath")
+          info(s"======== Validating $filePath")
           // 1) Check if file has valid timestamp
           checkFileTimestamp(filePath: Path) match {
             case Some(filenameTimestamp: LocalDateTime) =>
@@ -195,7 +195,7 @@ object UseCaseFactory {
                   }
                 }
             case None =>
-              info(s"! $filePath file timestamp contains no valid timestamp")
+              info(s"! File timestamp contains no valid timestamp")
               treatedFiles += ((filePath, LocalDateTime.now))
           }
         }
