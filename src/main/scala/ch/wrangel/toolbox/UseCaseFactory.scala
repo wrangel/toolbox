@@ -3,7 +3,12 @@ package ch.wrangel.toolbox
 import java.nio.file.{Path, Paths}
 import java.time.LocalDateTime
 
-import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities, StringUtilities, TimestampUtilities}
+import ch.wrangel.toolbox.utilities.{
+  FileUtilities,
+  MiscUtilities,
+  StringUtilities,
+  TimestampUtilities
+}
 
 import scala.util.{Failure, Success, Try}
 
@@ -27,10 +32,12 @@ object UseCaseFactory {
       * @param directory     [[String]] representation of directory path
       * @param needsRenaming Flag indicating whether file should be renamed
       * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
+
       */
     def run(directory: String,
             needsRenaming: Boolean,
-            treatSecondaryTimestamps: Boolean): Unit = {
+            treatSecondaryTimestamps: Boolean
+            ): Unit = {
 
       FileUtilities
         .iterateFiles(directory)
@@ -138,7 +145,7 @@ object UseCaseFactory {
       */
     def run(directory: String,
             needsRenaming: Boolean,
-            treatSecondaryTimestamps: Boolean): Unit = {
+            treatSecondaryTimestamps: Boolean = false): Unit = {
       TimestampUtilities
         .detectHiddenTimestampsOrDates(directory)
         .foreach {
@@ -166,8 +173,9 @@ object UseCaseFactory {
       * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
       */
     def run(directory: String,
-            needsRenaming: Boolean,
-            treatSecondaryTimestamps: Boolean): Unit = {
+            needsRenaming: Boolean = false,
+            treatSecondaryTimestamps: Boolean = false,
+            ): Unit = {
       FileUtilities
         .iterateFiles(directory)
         .foreach { filePath: Path =>
@@ -177,14 +185,17 @@ object UseCaseFactory {
             case Some(filenameTimestamp: LocalDateTime) =>
               // Check for each relevant exif timestamp
               Constants.ReferenceExifTimestamps
-                .foreach {tag: String =>
+                .foreach { tag: String =>
                   // 2) Check if shell command returns valid stdout
                   checkValidity(filePath, tag) match {
                     case Some(element: Array[String]) =>
                       // 3) Check if String exif timestamp can be converted to a real timestamp
                       convertExifTimestamp(element) match {
                         case Some(exifTimestamp: LocalDateTime) =>
-                          compareTimestamps(filePath, filenameTimestamp, exifTimestamp, tag)
+                          compareTimestamps(filePath,
+                                            filenameTimestamp,
+                                            exifTimestamp,
+                                            tag)
                         case None =>
                           info(s"! $tag cannot be converted properly")
                           treatedFiles += ((filePath, LocalDateTime.now))
@@ -206,10 +217,10 @@ object UseCaseFactory {
     }
 
     /** Attempts to extract a [[LocalDateTime]] from the file name
-     *
-     * @param filePath [[Path]] to the file
-     * @return Optional [[LocalDateTime]] extracted from file name
-     */
+      *
+      * @param filePath [[Path]] to the file
+      * @return Optional [[LocalDateTime]] extracted from file name
+      */
     private def checkFileTimestamp(filePath: Path): Option[LocalDateTime] = {
       val fileName: String =
         FileUtilities.splitExtension(filePath, isPathNeeded = false).head
@@ -227,12 +238,13 @@ object UseCaseFactory {
     }
 
     /** Checks if shell command returns valid stdout
-     *
-     * @param filePath [[Path]] to the file
-     * @param tag Relevant exif timestamp tag
-     * @return Optional [[Array[String]]] containing the stdout
-     */
-    private def checkValidity(filePath: Path, tag: String): Option[Array[String]] = {
+      *
+      * @param filePath [[Path]] to the file
+      * @param tag Relevant exif timestamp tag
+      * @return Optional [[Array[String]]] containing the stdout
+      */
+    private def checkValidity(filePath: Path,
+                              tag: String): Option[Array[String]] = {
       StringUtilities
         .prepareExifToolOutput(
           s"""${Constants.ExifToolBaseCommand} -s -$tag "$filePath""""
@@ -241,29 +253,33 @@ object UseCaseFactory {
     }
 
     /** Attempts to convert the exif timestamps to [[LocalDateTime]]
-     *
-     * @param element Output of exiftool stdout
-     * @return Valid [[LocalDateTime]]
-     */
-    private def convertExifTimestamp(element: Array[String]): Option[LocalDateTime] = {
+      *
+      * @param element Output of exiftool stdout
+      * @return Valid [[LocalDateTime]]
+      */
+    private def convertExifTimestamp(
+        element: Array[String]): Option[LocalDateTime] = {
       Constants.TimestampFormatters
         .flatMap(
           ts =>
             TimestampUtilities.convertStringToTimestamp(
               element.last,
               ts._2
-            ))
+          ))
         .headOption
     }
 
     /** Compares exif timestamps with timestamp extracted from file name
-     *
-     * @param filePath [[Path]] to the file
-     * @param filenameTimestamp [[LocalDateTime]] representing the timestamp extracted from the file name
-     * @param exifTimestamp [[LocalDateTime]] representing the exif timestamp
-     * @param tag Tag of the exif timestamp
-     */
-    private def compareTimestamps(filePath: Path, filenameTimestamp: LocalDateTime, exifTimestamp: LocalDateTime, tag: String): Unit = {
+      *
+      * @param filePath [[Path]] to the file
+      * @param filenameTimestamp [[LocalDateTime]] representing the timestamp extracted from the file name
+      * @param exifTimestamp [[LocalDateTime]] representing the exif timestamp
+      * @param tag Tag of the exif timestamp
+      */
+    private def compareTimestamps(filePath: Path,
+                                  filenameTimestamp: LocalDateTime,
+                                  exifTimestamp: LocalDateTime,
+                                  tag: String): Unit = {
       info(
         s"Comparing file timestamp $filenameTimestamp" +
           s" with $tag $exifTimestamp"
@@ -271,8 +287,7 @@ object UseCaseFactory {
       if (!filenameTimestamp.equals(exifTimestamp)) {
         info(s"! Timestamps do not match")
         treatedFiles += ((filePath, LocalDateTime.now))
-      }
-      else
+      } else
         info(s"Timestamps match")
     }
 

@@ -4,38 +4,25 @@ import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities}
 
 import scala.util.Try
 
-/** Command line tool to synchronize photo file names, exif and mac timestamps
- *
- * Example arguments:
- * <PathToFiles> file
- * <PathToFiles> exif true
- * <PathToFiles> validate
- *
- * Typical procedure will be:
- * - 1) exif
- *      a) To apply a valid DateTimeOriginal / CreateDate to file name,
- *      mac timestamps, and the rest of the exif timestamps, OR
- *      B) To detect potentially valid exif dates outside DateTimeOriginal / CreateDate, ask for user's choice,
- *      and apply choice (if any) to file name, mac timestamps, and the rest of the exif timestamps.
- * - 2) file
- *      To detect a valid timestamp in the file name and apply them to file name,
- *      mac timestamps, and exif timestamps. (Mac only: comment out TimestampUtilities, line 25)
-   *      timestamps available for neither exif nor mac, th en add the date / timestamp to your photo's name.
- *      The procedure takes it from there
- * - 3) validate
- *      To check if the timestamp in file name and DateTimeOriginal / Create Date coincide. Move to a sub folder
- *      otherwise
- */
+/** Command line tool to synchronize photo file names, exif and mac timestamps */
 object Main extends App {
 
-  FileUtilities.createOrAdaptExifConfigFile()
-  MiscUtilities.handleZeroByteLengthFiles(args.head)
-  UseCaseFactory(args(1)).run(
-    args.head,
-    Try { args(2).toBoolean }
-      .getOrElse(false),
-    Try { args.last.toBoolean }
-      .getOrElse(false)
-  )
+  val relevantParameters: Seq[String] = args.slice(0, args.length - 1).toSeq
+  if (Constants.ParameterSpace.keys.toSeq.contains(relevantParameters)) {
+    val arguments
+      : Seq[String] = Constants.ParameterSpace(relevantParameters) :+ args.last
+    FileUtilities.createOrAdaptExifConfigFile()
+    MiscUtilities.handleZeroByteLengthFiles(arguments.last)
+    UseCaseFactory(arguments.head).run( // Use case
+      arguments.last, // Directory
+      Try {
+        arguments(1).toBoolean // Rename true false needsRenaming
+      }.getOrElse(false),
+      Try {
+        arguments(2).toBoolean // Handle secondary timestamps
+      }.getOrElse(false)
+    )
+  } else
+    System.out.println(Constants.WelcomeText)
 
 }

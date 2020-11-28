@@ -22,6 +22,6 @@ trait UseCase extends LogSupport {
    * @param needsRenaming Flag indicating whether file should be renamed
    * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
    */
-  def run(directory: String, needsRenaming: Boolean = true, treatSecondaryTimestamps: Boolean = true): Unit
+  def run(directory: String, needsRenaming: Boolean, treatSecondaryTimestamps: Boolean): Unit
 
 }

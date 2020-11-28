@@ -9,6 +9,35 @@ import scala.util.matching.Regex
 /* Holds project wide constants */
 object Constants {
 
+  /** Allowed argument space */
+  val ParameterSpace: Map[Seq[String], Seq[String]] = Map(
+    Seq("-e", "-r", "-s") -> Seq("exif", "true", "true"),
+    Seq("-e", "-r") -> Seq("exif", "true"),
+    Seq("-e") -> Seq("exif", "false", "true"),
+    Seq("-f", "-r") -> Seq("file", "true"),
+    Seq("-f") -> Seq("file"),
+    Seq("-v") -> Seq("validate")
+  )
+
+  /** Welcome screen */
+  val WelcomeText: String = {
+      """Welcome to the photo and video timestamp toolbox.
+        |Parameters:
+        |   A) Mandatory (either or):
+        |     -e : Use exif timestamps to rename file (if desired, see "-r") and adapt Mac timestamps. Default:
+        |          Use principal exif timestamps (CreateDate and DateTimeOriginal). See "-s" if using both
+        |          principal and secondary exif timestamps (all the rest of the exif timestamps).
+        |     -f : Detect a valid timestamp in the file name and apply them to file name (if desired, see "-r"),
+        |          Mac timestamps, and all exif timestamps.
+        |     -v : Validate if the timestamp in file name and principal exif timestamps
+        |         (DateTimeOriginal / Create Date) coincide. Move the file to a sub folder otherwise.
+        |   B) Secondary (both, one alone, or none):
+        |     -r : Rename file
+        |     -s : Use secondary exif timestamps as well, Only applicable to -e
+        |   C) Directory String
+        |""".stripMargin
+  }
+
   /* Key for expressing not applicable timestamp while checking secondary timestamps */
   final val NonApplicableKey: String = "-"
 
