@@ -16,10 +16,12 @@ object TimestampUtilities extends LogSupport {
   /** Adjusts both Mac OS and exif timestamps
     *
     * @param fileToDateMap [[Map]] from file [[Path]] to the file's [[LocalDateTime]]
+    * @param treatExifTimestamps Flag whether to treat exif timestamps. Default is true
     */
-  def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime]): Unit = {
+  def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime], treatExifTimestamps: Boolean = true): Unit = {
     if (fileToDateMap.nonEmpty) {
-      writeExifTimestamps(fileToDateMap)
+      if (treatExifTimestamps)
+        writeExifTimestamps(fileToDateMap)
       writeMacTimestamps(fileToDateMap)
     }
   }
@@ -220,7 +222,7 @@ object TimestampUtilities extends LogSupport {
             .replaceAll("[^0-9]", "")
         }
       }
-      .filter(_._2.length > 0)
+      .filter(_._2.nonEmpty)
       .toMap
   }
 

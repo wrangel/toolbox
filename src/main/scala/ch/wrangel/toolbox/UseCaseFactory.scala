@@ -31,13 +31,12 @@ object UseCaseFactory {
       *
       * @param directory     [[String]] representation of directory path
       * @param needsRenaming Flag indicating whether file should be renamed
-      * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
+      * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps
 
       */
     def run(directory: String,
             needsRenaming: Boolean,
-            treatSecondaryTimestamps: Boolean
-            ): Unit = {
+            treatExifTimestamps: Boolean): Unit = {
 
       FileUtilities
         .iterateFiles(directory)
@@ -58,7 +57,7 @@ object UseCaseFactory {
             handlePrincipalTimestamps(principalTimestamps,
                                       filePath,
                                       needsRenaming)
-          else if (treatSecondaryTimestamps)
+          else if (treatExifTimestamps)
             handleSecondaryTimestamps(secondaryTimestamps,
                                       filePath,
                                       needsRenaming)
@@ -69,7 +68,7 @@ object UseCaseFactory {
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
       Validate.run(directory, needsRenaming)
 
-      if (treatSecondaryTimestamps)
+      if (treatExifTimestamps)
         MiscUtilities.getProcessOutput("""osascript -e 'quit app "Preview"'""")
     }
 
@@ -134,18 +133,20 @@ object UseCaseFactory {
 
   }
 
-  /* Renames files & changes mac & exif timestamp according to the valid timestamp detected in the file name */
+  /* Renames files & changes mac & exif timestamp (if desired)
+  according to the valid timestamp detected in the file name
+   */
   private object FileNameAsReference extends UseCase {
 
     /** Runs the process
       *
       * @param directory     [[String]] representation of directory path
       * @param needsRenaming Flag indicating whether file should be renamed
-      * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
+      * @param treatExifTimestamps Flag indicating whether to treat exif timestamps
       */
     def run(directory: String,
             needsRenaming: Boolean,
-            treatSecondaryTimestamps: Boolean = false): Unit = {
+            treatExifTimestamps: Boolean): Unit = {
       TimestampUtilities
         .detectHiddenTimestampsOrDates(directory)
         .foreach {
@@ -155,7 +156,8 @@ object UseCaseFactory {
                                                       needsRenaming =
                                                         needsRenaming)
         }
-      TimestampUtilities.writeTimestamps(treatedFiles.toMap)
+      TimestampUtilities.writeTimestamps(treatedFiles.toMap,
+                                         treatExifTimestamps)
       Validate.run(directory)
     }
 
@@ -170,12 +172,12 @@ object UseCaseFactory {
       *
       * @param directory     [[String]] representation of directory path
       * @param needsRenaming Flag indicating whether file should be renamed
-      * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
+      * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps
       */
     def run(directory: String,
             needsRenaming: Boolean = false,
-            treatSecondaryTimestamps: Boolean = false,
-            ): Unit = {
+            treatExifTimestamps: Boolean = false,
+    ): Unit = {
       FileUtilities
         .iterateFiles(directory)
         .foreach { filePath: Path =>

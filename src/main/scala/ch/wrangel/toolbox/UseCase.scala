@@ -20,8 +20,8 @@ trait UseCase extends LogSupport {
    *
    * @param directory     [[String]] representation of directory path
    * @param needsRenaming Flag indicating whether file should be renamed
-   * @param treatSecondaryTimestamps Flag indicating whether to treat secondary timestamps
+   * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps
    */
-  def run(directory: String, needsRenaming: Boolean, treatSecondaryTimestamps: Boolean): Unit
+  def run(directory: String, needsRenaming: Boolean, treatExifTimestamps: Boolean): Unit
 
 }
