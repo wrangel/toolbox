@@ -57,7 +57,7 @@ object UseCaseFactory {
                                       filePath,
                                       needsRenaming)
           else
-            info(s"======== ATTENTION! Omitting $filePath")
+            warn(s"======== Omitting $filePath")
         }
       TimestampUtilities.writeTimestamps(treatedFiles.toMap)
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
@@ -121,7 +121,7 @@ object UseCaseFactory {
             needsRenaming = needsRenaming
           )
       } else
-        info("ATTENTION! No valid timestamps found")
+        warn("No valid timestamps found")
       MiscUtilities.getProcessOutput(
         """osascript -e 'tell application "Preview" to close first window'""")
     }
@@ -194,16 +194,16 @@ object UseCaseFactory {
                                             exifTimestamp,
                                             tag)
                         case None =>
-                          info(s"ATTENTION! $tag cannot be converted properly")
+                          warn(s"$tag cannot be converted properly")
                           treatedFiles += ((filePath, LocalDateTime.now))
                       }
                     case None =>
-                      info(s"ATTENTION! Shell command returns no valid output")
+                      warn(s"Shell command returns no valid output")
                       treatedFiles += ((filePath, LocalDateTime.now))
                   }
                 }
             case None =>
-              info(s"ATTENTION! File timestamp contains no valid timestamp")
+              warn(s"File timestamp contains no valid timestamp")
               treatedFiles += ((filePath, LocalDateTime.now))
           }
         }
@@ -282,7 +282,7 @@ object UseCaseFactory {
           s" with $tag $exifTimestamp"
       )
       if (!filenameTimestamp.equals(exifTimestamp)) {
-        info(s"ATTENTION! Timestamps do not match")
+        warn(s"Timestamps do not match")
         treatedFiles += ((filePath, LocalDateTime.now))
       } else
         info(s"Timestamps match")
@@ -314,7 +314,7 @@ object UseCaseFactory {
               if (year.get.matches("[0-9]+"))
                 year
               else {
-                warn(s"ATTENTION! Invalid filename: $filename")
+                warn(s"Invalid filename: $filename")
                 None
               }
             } else
