@@ -18,7 +18,8 @@ object Constants {
     Seq("-f", "-r") -> Seq("file", "true"),
     Seq("-f", "-e") -> Seq("file", "false", "true"),
     Seq("-f") -> Seq("file"),
-    Seq("-v") -> Seq("validate")
+    Seq("-v") -> Seq("validate"),
+    Seq("-c") -> Seq("count")
   )
 
   /** Welcome screen */
@@ -49,6 +50,8 @@ object Constants {
         |   -v <directory string>
         |       Validate if the timestamp in file name and principal exif timestamps
         |       (DateTimeOriginal / Create Date) coincide. Move the file to a sub folder otherwise
+        |   -c <directory string>
+        |       Count files per year folder
         |""".stripMargin
   }
 

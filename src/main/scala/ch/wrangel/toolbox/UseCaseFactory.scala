@@ -1,15 +1,10 @@
 package ch.wrangel.toolbox
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{Files, Path, Paths}
 import java.time.LocalDateTime
+import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities, StringUtilities, TimestampUtilities}
 
-import ch.wrangel.toolbox.utilities.{
-  FileUtilities,
-  MiscUtilities,
-  StringUtilities,
-  TimestampUtilities
-}
-
+import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
 
 /** Protective object around use case singletons
@@ -62,7 +57,7 @@ object UseCaseFactory {
                                       filePath,
                                       needsRenaming)
           else
-            info(s"======== ! Omitting $filePath")
+            info(s"======== ATTENTION! Omitting $filePath")
         }
       TimestampUtilities.writeTimestamps(treatedFiles.toMap)
       TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
@@ -126,7 +121,7 @@ object UseCaseFactory {
             needsRenaming = needsRenaming
           )
       } else
-        info("! No valid timestamps found")
+        info("ATTENTION! No valid timestamps found")
       MiscUtilities.getProcessOutput(
         """osascript -e 'tell application "Preview" to close first window'""")
     }
@@ -199,16 +194,16 @@ object UseCaseFactory {
                                             exifTimestamp,
                                             tag)
                         case None =>
-                          info(s"! $tag cannot be converted properly")
+                          info(s"ATTENTION! $tag cannot be converted properly")
                           treatedFiles += ((filePath, LocalDateTime.now))
                       }
                     case None =>
-                      info(s"! Shell command returns no valid output")
+                      info(s"ATTENTION! Shell command returns no valid output")
                       treatedFiles += ((filePath, LocalDateTime.now))
                   }
                 }
             case None =>
-              info(s"! File timestamp contains no valid timestamp")
+              info(s"ATTENTION! File timestamp contains no valid timestamp")
               treatedFiles += ((filePath, LocalDateTime.now))
           }
         }
@@ -287,10 +282,51 @@ object UseCaseFactory {
           s" with $tag $exifTimestamp"
       )
       if (!filenameTimestamp.equals(exifTimestamp)) {
-        info(s"! Timestamps do not match")
+        info(s"ATTENTION! Timestamps do not match")
         treatedFiles += ((filePath, LocalDateTime.now))
       } else
         info(s"Timestamps match")
+    }
+
+  }
+
+  /** Counts number of files per year */
+  private object YearCounts extends UseCase {
+
+    /** Creates a sorted Map containing years as keys, and file counts as values
+     *
+     * @param directory     [[String]] representation of directory path
+     * @param needsRenaming Flag indicating whether file should be renamed. Default is false, since not used
+     * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps. Default is false,
+     *                            since not used
+     */
+    def run(directory: String,
+            needsRenaming: Boolean = false,
+            treatExifTimestamps: Boolean = false,
+           ): Unit = {
+      val yearCounts: ListMap[String, Int] = ListMap(
+        FileUtilities
+          .iterateFiles(directory, walk = true)
+          .flatMap { file: Path =>
+            if (Files.isRegularFile(file)) {
+              val filename: String = file.getFileName.toString
+              val year: Option[String] = Some(filename.substring(0, 4))
+              if (year.get.matches("[0-9]+"))
+                year
+              else {
+                warn(s"ATTENTION! Invalid filename: $filename")
+                None
+              }
+            } else
+              None
+          }
+          .groupBy(identity)
+          .view
+          .mapValues(_.size)
+          .toSeq
+          .sortBy(_._1): _*)
+
+      yearCounts foreach println
     }
 
   }
@@ -308,6 +344,8 @@ object UseCaseFactory {
         FileNameAsReference
       case "validate" =>
         Validate
+      case "count" =>
+        YearCounts
     }
   }
 
