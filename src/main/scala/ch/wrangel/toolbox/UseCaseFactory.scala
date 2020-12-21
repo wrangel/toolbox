@@ -322,7 +322,7 @@ object UseCaseFactory {
             if (Files.isRegularFile(file)) {
               val filename: String = file.getFileName.toString
               val year: Option[String] = Some(filename.substring(0, 4))
-              if (year.get.matches("[0-9]+") | !Constants.isNotExiftoolTmpFile(
+              if (year.get.matches("[0-9]+") & Constants.isNotExiftoolTmpFile(
                     filename))
                 year
               else {
