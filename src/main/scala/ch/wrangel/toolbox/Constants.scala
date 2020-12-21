@@ -141,6 +141,6 @@ object Constants {
 
   /** Identifier for exiftool temp files */
   final val isNotExiftoolTmpFile: String => Boolean =
-    (filename: String) => filename.endsWith("exiftool_tmp")
+    (filename: String) => !filename.endsWith("exiftool_tmp")
 
 }
