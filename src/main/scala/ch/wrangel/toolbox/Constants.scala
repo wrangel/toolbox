@@ -139,4 +139,8 @@ object Constants {
   /** Excluded file types */
   final val ExcludedFileTypes: Seq[String] = Seq(".txt")
 
+  /** Identifier for non-exiftool temp files */
+  final val isNotExiftoolTmpFile: String => Boolean =
+    (filename: String) => filename.endsWith("exiftool_tmp")
+
 }

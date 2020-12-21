@@ -2,7 +2,12 @@ package ch.wrangel.toolbox
 
 import java.nio.file.{Files, Path, Paths}
 import java.time.LocalDateTime
-import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities, StringUtilities, TimestampUtilities}
+import ch.wrangel.toolbox.utilities.{
+  FileUtilities,
+  MiscUtilities,
+  StringUtilities,
+  TimestampUtilities
+}
 
 import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
@@ -177,34 +182,40 @@ object UseCaseFactory {
         .iterateFiles(directory)
         .foreach { filePath: Path =>
           info(s"======== Validating $filePath")
-          // 1) Check if file has valid timestamp
-          checkFileTimestamp(filePath: Path) match {
-            case Some(filenameTimestamp: LocalDateTime) =>
-              // Check for each relevant exif timestamp
-              Constants.ReferenceExifTimestamps
-                .foreach { tag: String =>
-                  // 2) Check if shell command returns valid stdout
-                  checkValidity(filePath, tag) match {
-                    case Some(element: Array[String]) =>
-                      // 3) Check if String exif timestamp can be converted to a real timestamp
-                      convertExifTimestamp(element) match {
-                        case Some(exifTimestamp: LocalDateTime) =>
-                          compareTimestamps(filePath,
-                                            filenameTimestamp,
-                                            exifTimestamp,
-                                            tag)
-                        case None =>
-                          warn(s"$tag cannot be converted properly")
-                          treatedFiles += ((filePath, LocalDateTime.now))
-                      }
-                    case None =>
-                      warn(s"Shell command returns no valid output")
-                      treatedFiles += ((filePath, LocalDateTime.now))
+          // 0) Check if file is not an exiftool temp file
+          if (Constants.isNotExiftoolTmpFile(filePath.getFileName.toString)) {
+            // 1) Check if file has valid timestamp
+            checkFileTimestamp(filePath: Path) match {
+              case Some(filenameTimestamp: LocalDateTime) =>
+                // Check for each relevant exif timestamp
+                Constants.ReferenceExifTimestamps
+                  .foreach { tag: String =>
+                    // 2) Check if shell command returns valid stdout
+                    checkValidity(filePath, tag) match {
+                      case Some(element: Array[String]) =>
+                        // 3) Check if String exif timestamp can be converted to a real timestamp
+                        convertExifTimestamp(element) match {
+                          case Some(exifTimestamp: LocalDateTime) =>
+                            compareTimestamps(filePath,
+                                              filenameTimestamp,
+                                              exifTimestamp,
+                                              tag)
+                          case None =>
+                            warn(s"$tag cannot be converted properly")
+                            treatedFiles += ((filePath, LocalDateTime.now))
+                        }
+                      case None =>
+                        warn(s"Shell command returns no valid output")
+                        treatedFiles += ((filePath, LocalDateTime.now))
+                    }
                   }
-                }
-            case None =>
-              warn(s"File timestamp contains no valid timestamp")
-              treatedFiles += ((filePath, LocalDateTime.now))
+              case None =>
+                warn(s"File timestamp contains no valid timestamp")
+                treatedFiles += ((filePath, LocalDateTime.now))
+            }
+          } else {
+            warn(s"File is a remnant exiftool temp file")
+            treatedFiles += ((filePath, LocalDateTime.now))
           }
         }
       FileUtilities.moveFiles(
@@ -294,16 +305,16 @@ object UseCaseFactory {
   private object YearCounts extends UseCase {
 
     /** Creates a sorted Map containing years as keys, and file counts as values
-     *
-     * @param directory     [[String]] representation of directory path
-     * @param needsRenaming Flag indicating whether file should be renamed. Default is false, since not used
-     * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps. Default is false,
-     *                            since not used
-     */
+      *
+      * @param directory     [[String]] representation of directory path
+      * @param needsRenaming Flag indicating whether file should be renamed. Default is false, since not used
+      * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps. Default is false,
+      *                            since not used
+      */
     def run(directory: String,
             needsRenaming: Boolean = false,
             treatExifTimestamps: Boolean = false,
-           ): Unit = {
+    ): Unit = {
       val yearCounts: ListMap[String, Int] = ListMap(
         FileUtilities
           .iterateFiles(directory, walk = true)
@@ -311,7 +322,8 @@ object UseCaseFactory {
             if (Files.isRegularFile(file)) {
               val filename: String = file.getFileName.toString
               val year: Option[String] = Some(filename.substring(0, 4))
-              if (year.get.matches("[0-9]+") | !filename.endsWith("exiftool_tmp"))
+              if (year.get.matches("[0-9]+") & Constants.isNotExiftoolTmpFile(
+                    filename))
                 year
               else {
                 warn(s"Invalid filename: $file")
