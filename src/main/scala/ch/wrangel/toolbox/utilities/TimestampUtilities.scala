@@ -1,12 +1,11 @@
 package ch.wrangel.toolbox.utilities
 
-import java.nio.file.{Files, Path}
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDateTime, LocalTime, YearMonth, ZonedDateTime}
-
 import ch.wrangel.toolbox.Constants
 import wvlet.log.LogSupport
 
+import java.nio.file.{Files, Path}
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, LocalTime, YearMonth, ZonedDateTime}
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
@@ -14,10 +13,10 @@ import scala.util.{Failure, Success, Try}
 object TimestampUtilities extends LogSupport {
 
   /** Adjusts both Mac OS and exif timestamps
-    *
-    * @param fileToDateMap [[Map]] from file [[Path]] to the file's [[LocalDateTime]]
-    * @param treatExifTimestamps Flag whether to treat exif timestamps. Default is true
-    */
+   *
+   * @param fileToDateMap       [[Map]] from file [[Path]] to the file's [[LocalDateTime]]
+   * @param treatExifTimestamps Flag whether to treat exif timestamps. Default is true
+   */
   def writeTimestamps(fileToDateMap: Map[Path, LocalDateTime], treatExifTimestamps: Boolean = true): Unit = {
     if (fileToDateMap.nonEmpty) {
       if (treatExifTimestamps)
@@ -27,9 +26,9 @@ object TimestampUtilities extends LogSupport {
   }
 
   /** Rewrites the Mac OS creation and modification timestamps
-    *
-    * @param fileNameToTimestampMap [[Map]] containing the file [[Path]] as well as the file's [[LocalDateTime]]
-    */
+   *
+   * @param fileNameToTimestampMap [[Map]] containing the file [[Path]] as well as the file's [[LocalDateTime]]
+   */
   def writeMacTimestamps(fileNameToTimestampMap: Map[Path, LocalDateTime]): Unit = {
     fileNameToTimestampMap.keys
       .foreach { filePath: Path =>
@@ -51,13 +50,13 @@ object TimestampUtilities extends LogSupport {
   }
 
   /** Newly writes exif timestamps
-    *
-    * @param fileNameToTimestampMap [[Map]] containing the file [[Path]] as well as the file's [[LocalDateTime]]
-    */
+   *
+   * @param fileNameToTimestampMap [[Map]] containing the file [[Path]] as well as the file's [[LocalDateTime]]
+   */
   private def writeExifTimestamps(
-      fileNameToTimestampMap: Map[Path, LocalDateTime],
-      optionalExcludedExifTags: Option[Seq[String]] = None
-  ): Unit = {
+                                   fileNameToTimestampMap: Map[Path, LocalDateTime],
+                                   optionalExcludedExifTags: Option[Seq[String]] = None
+                                 ): Unit = {
     fileNameToTimestampMap.foreach {
       case (filePath: Path, ldt: LocalDateTime) =>
         createDates(filePath)
@@ -88,69 +87,22 @@ object TimestampUtilities extends LogSupport {
     }
   }
 
-  /** Extracts the exif timestamp from ExifTool output, if possible
-    *
-    * @param filePath [[Path]] to the file
-    * @return [[Map]] of tag identifier and the optional corresponding [[LocalDateTime]]
-    */
-  def readExifTimestamps(filePath: Path): Map[String, Option[LocalDateTime]] = {
-    StringUtilities
-      .prepareExifToolOutput(constructExifToolGetAllTimestampsCommand(filePath))
-      .map { descriptorAndTimestamp: Array[String] =>
-        descriptorAndTimestamp.head ->
-          convertStringToTimestamp(descriptorAndTimestamp.last,
-                                   Constants.TimestampFormatters("exif"))
-      }
-      .toMap
-  }
-
-  /** Converts [[String]] to [[LocalDateTime]], if possible (core method)
-    *
-    * @param timestamp [[String]] potentially containing the [[LocalDateTime]]
-    * @param dtf       [[DateTimeFormatter]] used to convert [[String]] to [[LocalDateTime]]
-    * @return Optional [[LocalDateTime]]
-    */
-  def convertStringToTimestamp(timestamp: String,
-                               dtf: DateTimeFormatter): Option[LocalDateTime] =
-    Try {
-      LocalDateTime.parse(timestamp, dtf)
-    } match {
-      case Success(ldt: LocalDateTime) =>
-        if (ldt.getYear == 1970 & ldt.getMonthValue == 1 & ldt.getDayOfMonth == 1)
-          None
-        else
-          Some(ldt)
-      case Failure(_) =>
-        Try {
-          Some(
-            ZonedDateTime
-              .parse(timestamp, Constants.TimestampFormatters("zonedExif"))
-              .toLocalDateTime)
-        } match {
-          case Success(ldt: Some[LocalDateTime]) =>
-            ldt
-          case Failure(_) =>
-            Try {
-              Some(
-                LocalDateTime.parse(timestamp, Constants.TimestampFormatters("exif2")))
-            }
-              .getOrElse(None)
-        }
-    }
-
   /** Renames a file, if necessary (i.e. the file does not already bear exactly the same file name)
-    *
-    * @param filePath [[Path]] to the file
-    * @param ldt      [[LocalDateTime]] to be used for renaming
-    * @return [[Path]] to the renamed file name
-    */
+   *
+   * @param filePath [[Path]] to the file
+   * @param ldt      [[LocalDateTime]] to be used for renaming
+   * @return [[Path]] to the renamed file name
+   */
   def writeTimestampInFilename(filePath: Path, ldt: LocalDateTime): Path = {
     val filePathComponents: Seq[String] =
       FileUtilities.splitExtension(filePath, isPathNeeded = false)
     val oldFileName: String = filePathComponents.mkString("")
     val timestamp: String = ldt.format(Constants.TimestampFormatters("file"))
-    if (!filePathComponents.head.equals(timestamp) & Files.isRegularFile(
-          filePath)) {
+    val hasCorrectTimestampAlready: Boolean = Try {
+      filePathComponents.head.split(Constants.PartitionString).head.equals(timestamp) |
+        filePathComponents.head.equals(timestamp)
+    }.getOrElse(false)
+    if (!hasCorrectTimestampAlready) {
       val newFileName: String =
         timestamp + Constants.PartitionString + oldFileName
       info(s"======== Treating $filePath")
@@ -165,13 +117,13 @@ object TimestampUtilities extends LogSupport {
   }
 
   /** Detects timestamps / dates in file names. File names without valid timestamps / dates are omitted
-    *
-    * @param directory [[String]] representation of path of directory
-    * @return [[Map]] containing file [[Path]]s as keys, and valid [[LocalDateTime]]s as values.
-    *         For dates, the time component is set to "00:01:00"
-    */
+   *
+   * @param directory [[String]] representation of path of directory
+   * @return [[Map]] containing file [[Path]]s as keys, and valid [[LocalDateTime]]s as values.
+   *         For dates, the time component is set to "00:01:00"
+   */
   def detectHiddenTimestampsOrDates(
-      directory: String): Map[Path, LocalDateTime] = {
+                                     directory: String): Map[Path, LocalDateTime] = {
     identifyCandidates(directory)
       .map {
         case (filePath: Path, value: String) =>
@@ -206,10 +158,10 @@ object TimestampUtilities extends LogSupport {
   }
 
   /** Filters out [[Path]]s to files whose file names might include a valid timestamp / date
-    *
-    * @param directory [[String]] representation of directory path
-    * @return [[Map]] containing the candidate files' [[Path]] as keys, and the timestamp / date candidate [[String]]
-    */
+   *
+   * @param directory [[String]] representation of directory path
+   * @return [[Map]] containing the candidate files' [[Path]] as keys, and the timestamp / date candidate [[String]]
+   */
   def identifyCandidates(directory: String): Map[Path, String] = {
     FileUtilities
       .iterateFiles(directory)
@@ -227,10 +179,10 @@ object TimestampUtilities extends LogSupport {
   }
 
   /** Determines whether a candidate [[String]] is a valid timestamp / date
-    *
-    * @param candidate [[String]] potentially representing a valid timestamp / date
-    * @return Flag indicating whether candidate [[String]] is a valid timestamp / date
-    */
+   *
+   * @param candidate [[String]] potentially representing a valid timestamp / date
+   * @return Flag indicating whether candidate [[String]] is a valid timestamp / date
+   */
   def isValidCandidate(candidate: String): Boolean = {
     val components: ListBuffer[String] = ListBuffer[String]()
     MiscUtilities.splitCollection(Seq(4, 2, 2, 2, 2, 2), candidate, components)
@@ -256,13 +208,13 @@ object TimestampUtilities extends LogSupport {
   }
 
   /** Adds [[LocalTime]] to a date
-    * If there is at least one exif timestamp supporting the date present in the file name, the former's time portion
-    * is added to the date. If not, a default time is added
-    *
-    * @param filePath [[Path]] to the file
-    * @param date     [[String]] representation of a potentially valid date
-    * @return Potentially valid [[LocalDateTime]]
-    */
+   * If there is at least one exif timestamp supporting the date present in the file name, the former's time portion
+   * is added to the date. If not, a default time is added
+   *
+   * @param filePath [[Path]] to the file
+   * @param date     [[String]] representation of a potentially valid date
+   * @return Potentially valid [[LocalDateTime]]
+   */
   def addTimeToDate(filePath: Path, date: String): Option[LocalDateTime] = {
     val coincidingExifTimestamps: ListBuffer[LocalDateTime] =
       ListBuffer[LocalDateTime]()
@@ -272,10 +224,10 @@ object TimestampUtilities extends LogSupport {
           oldt match {
             case Some(ldt: LocalDateTime) =>
               if (Try {
-                    ldt.getYear == date.substring(0, 4).toInt &
-                      ldt.getMonthValue == date.substring(4, 6).toInt &
-                      ldt.getDayOfMonth == date.substring(6, 8).toInt
-                  }.getOrElse(false))
+                ldt.getYear == date.substring(0, 4).toInt &
+                  ldt.getMonthValue == date.substring(4, 6).toInt &
+                  ldt.getDayOfMonth == date.substring(6, 8).toInt
+              }.getOrElse(false))
                 coincidingExifTimestamps += ldt
             case None =>
           }
@@ -283,46 +235,96 @@ object TimestampUtilities extends LogSupport {
     Try {
       Some(coincidingExifTimestamps.min)
     }.getOrElse {
-        Try {
-          Some(
-            convertStringToTimestamp(date + Constants.DefaultTime,
-                                     Constants.TimestampFormatters("file")).get)
-        }.getOrElse {
-            MiscUtilities.getFeedback(
-              s"Is $date a valid partial date?",
-              Seq("y", "n")
-            ) match {
-              case "y" =>
-                Some(
-                  convertStringToTimestamp(
-                    date + Constants.DefaultDay + Constants.DefaultTime,
-                    Constants.TimestampFormatters("file")
-                  ).get
-                )
-              case _ =>
-                None
-            }
-          }
+      Try {
+        Some(
+          convertStringToTimestamp(date + Constants.DefaultTime,
+            Constants.TimestampFormatters("file")).get)
+      }.getOrElse {
+        MiscUtilities.getFeedback(
+          s"Is $date a valid partial date?",
+          Seq("y", "n")
+        ) match {
+          case "y" =>
+            Some(
+              convertStringToTimestamp(
+                date + Constants.DefaultDay + Constants.DefaultTime,
+                Constants.TimestampFormatters("file")
+              ).get
+            )
+          case _ =>
+            None
+        }
       }
+    }
   }
 
-  /** Gets all exif timestamps available for the file
-    *
-    * @param timestamps [[Map]] with exif timestamp ids as keys, and optional [[LocalDateTime]] as values
-    * @return [[Iterable]] of existing [[LocalDateTime]]
-    */
-  def getExifTimestamps(timestamps: Map[String, Option[LocalDateTime]])
-    : Iterable[LocalDateTime] = {
-    timestamps.values.flatten
+  /** Extracts the exif timestamp from ExifTool output, if possible
+   *
+   * @param filePath [[Path]] to the file
+   * @return [[Map]] of tag identifier and the optional corresponding [[LocalDateTime]]
+   */
+  def readExifTimestamps(filePath: Path): Map[String, Option[LocalDateTime]] = {
+    StringUtilities
+      .prepareExifToolOutput(constructExifToolGetAllTimestampsCommand(filePath))
+      .map { descriptorAndTimestamp: Array[String] =>
+        descriptorAndTimestamp.head ->
+          convertStringToTimestamp(descriptorAndTimestamp.last,
+            Constants.TimestampFormatters("exif"))
+      }
+      .toMap
   }
 
   /** Constructs the ExifTool command to extract all timestamps
-    *
-    * @param filePath [[Path]] to the file
-    * @return [[String]] representing the ExifTool command
-    */
+   *
+   * @param filePath [[Path]] to the file
+   * @return [[String]] representing the ExifTool command
+   */
   def constructExifToolGetAllTimestampsCommand(filePath: Path): String = {
     s"""${Constants.ExifToolBaseCommand} -time:all -m -s "$filePath""""
+  }
+
+  /** Converts [[String]] to [[LocalDateTime]], if possible (core method)
+   *
+   * @param timestamp [[String]] potentially containing the [[LocalDateTime]]
+   * @param dtf       [[DateTimeFormatter]] used to convert [[String]] to [[LocalDateTime]]
+   * @return Optional [[LocalDateTime]]
+   */
+  def convertStringToTimestamp(timestamp: String,
+                               dtf: DateTimeFormatter): Option[LocalDateTime] =
+    Try {
+      LocalDateTime.parse(timestamp, dtf)
+    } match {
+      case Success(ldt: LocalDateTime) =>
+        if (ldt.getYear == 1970 & ldt.getMonthValue == 1 & ldt.getDayOfMonth == 1)
+          None
+        else
+          Some(ldt)
+      case Failure(_) =>
+        Try {
+          Some(
+            ZonedDateTime
+              .parse(timestamp, Constants.TimestampFormatters("zonedExif"))
+              .toLocalDateTime)
+        } match {
+          case Success(ldt: Some[LocalDateTime]) =>
+            ldt
+          case Failure(_) =>
+            Try {
+              Some(
+                LocalDateTime.parse(timestamp, Constants.TimestampFormatters("exif2")))
+            }
+              .getOrElse(None)
+        }
+    }
+
+  /** Gets all exif timestamps available for the file
+   *
+   * @param timestamps [[Map]] with exif timestamp ids as keys, and optional [[LocalDateTime]] as values
+   * @return [[Iterable]] of existing [[LocalDateTime]]
+   */
+  def getExifTimestamps(timestamps: Map[String, Option[LocalDateTime]])
+  : Iterable[LocalDateTime] = {
+    timestamps.values.flatten
   }
 
 }
