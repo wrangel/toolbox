@@ -53,10 +53,7 @@ object TimestampUtilities extends LogSupport {
    *
    * @param fileNameToTimestampMap [[Map]] containing the file [[Path]] as well as the file's [[LocalDateTime]]
    */
-  private def writeExifTimestamps(
-                                   fileNameToTimestampMap: Map[Path, LocalDateTime],
-                                   optionalExcludedExifTags: Option[Seq[String]] = None
-                                 ): Unit = {
+  private def writeExifTimestamps(fileNameToTimestampMap: Map[Path, LocalDateTime]): Unit = {
     fileNameToTimestampMap.foreach {
       case (filePath: Path, ldt: LocalDateTime) =>
         createDates(filePath)
