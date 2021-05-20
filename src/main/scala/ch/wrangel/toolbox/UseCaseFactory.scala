@@ -1,15 +1,9 @@
 package ch.wrangel.toolbox
 
-import java.nio.file.{Files, Path, Paths}
-import java.time.LocalDateTime
-import ch.wrangel.toolbox.utilities.{
-  FileUtilities,
-  MiscUtilities,
-  StringUtilities,
-  TimestampUtilities
-}
+import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities, StringUtilities, TimestampUtilities}
 
-import scala.collection.immutable.ListMap
+import java.nio.file.{Path, Paths}
+import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 /** Protective object around use case singletons
@@ -298,48 +292,6 @@ object UseCaseFactory {
       } else
         info(s"Timestamps match")
     }
-
-  }
-
-  /** Counts number of files per year */
-  private object YearCounts extends UseCase {
-
-    /** Creates a sorted Map containing years as keys, and file counts as values
-      *
-      * @param directory     [[String]] representation of directory path
-      * @param needsRenaming Flag indicating whether file should be renamed. Default is false, since not used
-      * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps. Default is false,
-      *                            since not used
-      */
-    def run(directory: String,
-            needsRenaming: Boolean = false,
-            treatExifTimestamps: Boolean = false,
-    ): Unit = {
-      val yearCounts: ListMap[String, Int] = ListMap(
-        FileUtilities
-          .iterateFiles(directory, walk = true)
-          .flatMap { file: Path =>
-            if (Files.isRegularFile(file)) {
-              val filename: String = file.getFileName.toString
-              val year: Option[String] = Some(filename.substring(0, 4))
-              if (year.get.matches("[0-9]+") & Constants.isNotExiftoolTmpFile(filename))
-                year
-              else {
-                warn(s"Invalid filename: $file")
-                None
-              }
-            } else
-              None
-          }
-          .groupBy(identity)
-          .view
-          .mapValues(_.size)
-          .toSeq
-          .sortBy(_._1): _*)
-
-      yearCounts foreach println
-    }
-
   }
 
   /** Factory method
@@ -355,8 +307,6 @@ object UseCaseFactory {
         FileNameAsReference
       case "validate" =>
         Validate
-      case "count" =>
-        YearCounts
     }
   }
 

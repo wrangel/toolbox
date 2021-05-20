@@ -50,8 +50,6 @@ object Constants {
         |   -v <directory string>
         |       Validate if the timestamp in file name and principal exif timestamps
         |       (DateTimeOriginal / Create Date) coincide. Move the file to a sub folder otherwise
-        |   -c <directory string>
-        |       Count files per year folder
         |""".stripMargin
   }
 
@@ -134,7 +132,7 @@ object Constants {
   final val UnsuccessfulFolder: String = "_unsuccessful"
 
   /* Folder name for files having zero byte size */
-  final val ZeroByteFolder: String = "__zeroByte"
+  final val ZeroByteFolder: String = "_zeroByte"
 
   /** Excluded file types */
   final val ExcludedFileTypes: Seq[String] = Seq(".txt")
