@@ -180,9 +180,9 @@ object FileUtilities extends LogSupport {
       val mountedImage: String = getProcessOutput(
         s"${Constants.HdiUtilIdentifier} mount $attachedImage"
       ).getOrElse("").split(Constants.BlankSplitter).last.trim
-      val mountVolume: String = getProcessOutput(s"ls $mountedImage").head
-      val pkg: String = Paths.get("/Volumes/", dmg, mountVolume).toString
-      getProcessOutput( s"sudo installer -verbose -pkg $pkg -target /")
+      val mountVolumeContents: String = getProcessOutput(s"ls $mountedImage").head
+      val pkgName: String = Paths.get("/Volumes/", dmg, mountVolumeContents).toString
+      getProcessOutput( s"sudo -A installer -pkg $pkgName -target /") // TODO
       cleanUp(attachedImage, mountedImage, downloadPath)
     }
   }
@@ -194,10 +194,12 @@ object FileUtilities extends LogSupport {
    * @param downloadPath String representation of path to downloaded file
    */
   def cleanUp(attachedImage: String, mountedImage: String, downloadPath: String): Unit = {
+    /*
     Seq(attachedImage, mountedImage).foreach {
       img: String =>
         getProcessOutput(s"${Constants.HdiUtilIdentifier} unmount $img")
     }
+     */
     getProcessOutput(s"rm $downloadPath")
   }
 }

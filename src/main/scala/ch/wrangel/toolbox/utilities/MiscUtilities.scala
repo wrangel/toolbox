@@ -100,7 +100,6 @@ object MiscUtilities extends LogSupport {
     val presentVersion: Double = getPresentExifToolVersion
     // Download if present version is older than newest version, or there is no present version
     if(presentVersion < newestVersion) {
-      info(s"Installing the newest ExifTool version ($newestVersion)")
       val downloadPath: String = Paths.get(Constants.DownloadFolder, dmg + Constants.ImageIdentifiers.last).toString
       Try {
         FileUtilities.download(Constants.ExifToolWebsite + "/" + dmg + Constants.ImageIdentifiers.last, downloadPath)
