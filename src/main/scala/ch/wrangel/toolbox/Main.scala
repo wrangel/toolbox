@@ -11,8 +11,12 @@ object Main extends App {
   if (Constants.ParameterSpace.keys.toSeq.contains(relevantParameters)) {
     val arguments
       : Seq[String] = Constants.ParameterSpace(relevantParameters) :+ args.last
+    // Install or update ExifTool, if necessary
+    MiscUtilities.handleExifTool()
+    // Handle the ExifTool config file
     FileUtilities.createOrAdaptExifConfigFile()
-    MiscUtilities.handleZeroByteLengthFiles(arguments.last)
+    // Handle zero bytes files
+    FileUtilities.handleZeroByteLengthFiles(arguments.last)
     UseCaseFactory(arguments.head).run( // Use case
       arguments.last, // Directory
       Try {

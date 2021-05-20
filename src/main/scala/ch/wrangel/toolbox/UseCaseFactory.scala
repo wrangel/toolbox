@@ -82,7 +82,7 @@ object UseCaseFactory {
         .getExifTimestamps(principalTimestamps)
         .headOption match {
         case Some(ldt: LocalDateTime) =>
-          treatedFiles += MiscUtilities.prepareFile(filePath,
+          treatedFiles += FileUtilities.prepareFile(filePath,
                                                     ldt,
                                                     needsRenaming =
                                                       needsRenaming)
@@ -114,7 +114,7 @@ object UseCaseFactory {
             Constants.NonApplicableKey +: options.map(_._2.toString)
           )
         if (feedback != Constants.NonApplicableKey)
-          treatedFiles2 += MiscUtilities.prepareFile(
+          treatedFiles2 += FileUtilities.prepareFile(
             filePath,
             candidateTimestamps(feedback.toInt),
             needsRenaming = needsRenaming
@@ -145,7 +145,7 @@ object UseCaseFactory {
         .detectHiddenTimestampsOrDates(directory)
         .foreach {
           case (filePath: Path, ldt: LocalDateTime) =>
-            treatedFiles += MiscUtilities.prepareFile(filePath,
+            treatedFiles += FileUtilities.prepareFile(filePath,
                                                       ldt,
                                                       needsRenaming =
                                                         needsRenaming)

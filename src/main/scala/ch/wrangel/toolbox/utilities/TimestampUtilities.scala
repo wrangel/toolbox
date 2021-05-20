@@ -120,7 +120,8 @@ object TimestampUtilities extends LogSupport {
    *         For dates, the time component is set to "00:01:00"
    */
   def detectHiddenTimestampsOrDates(
-                                     directory: String): Map[Path, LocalDateTime] = {
+                                     directory: String
+                                   ): Map[Path, LocalDateTime] = {
     identifyCandidates(directory)
       .map {
         case (filePath: Path, value: String) =>

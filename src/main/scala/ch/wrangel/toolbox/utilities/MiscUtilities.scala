@@ -1,55 +1,19 @@
 package ch.wrangel.toolbox.utilities
 
-import java.nio.file.{Files, Path, Paths}
-import java.time.LocalDateTime
-
 import ch.wrangel.toolbox.Constants
-
+import org.apache.commons.text.StringEscapeUtils
+import org.htmlcleaner.{HtmlCleaner, TagNode}
 import wvlet.log.LogSupport
 
+import java.net.URL
+import java.nio.file.Paths
 import scala.collection.mutable.ListBuffer
 import scala.io.StdIn
 import scala.sys.process.{Process, ProcessLogger}
+import scala.util.Try
 
 /* Utilities for miscellaneous functionality */
 object MiscUtilities extends LogSupport {
-
-  /** Prepares an element of the treated files map
-    *
-    * @param filePath      [[Path]] to the file
-    * @param ldt           [[LocalDateTime]] of the file, needed for renaming
-    * @param needsRenaming Flag indicating whether renaming is necessary
-    * @return [[Tuple2]] holding both [[Path]] to the renamed file and the file's [[LocalDateTime]]
-    */
-  def prepareFile(filePath: Path,
-                  ldt: LocalDateTime,
-                  needsRenaming: Boolean): (Path, LocalDateTime) = {
-    (
-      if (needsRenaming)
-        TimestampUtilities.writeTimestampInFilename(filePath, ldt)
-      else
-        filePath,
-      ldt
-    )
-  }
-
-  /** Checks for zero byte size files
-    *
-    * @param directory [[String]] representation of directory path
-    */
-  def handleZeroByteLengthFiles(directory: String): Unit = {
-    val zeroByteFiles: ListBuffer[Path] = ListBuffer()
-    FileUtilities
-      .iterateFiles(directory)
-      .foreach { filePath: Path =>
-        if (Files.size(filePath) == 0) {
-          warn(s"$filePath byte size is 0")
-          zeroByteFiles += filePath
-        }
-      }
-    FileUtilities.moveFiles(zeroByteFiles,
-                            Paths.get(directory, Constants.ZeroByteFolder))
-  }
 
   /** Splits a collection into multiple subsets, according to the [[Seq]] of indices provided
     *
@@ -103,6 +67,51 @@ object MiscUtilities extends LogSupport {
       feedback
     else
       getFeedback(validRange = validRange)
+  }
+
+  /** Currying function returning the ExifTool version present on the local computer
+   *
+   * @return Current ExifTool version in Double format
+   */
+  def getPresentExifToolVersion: Double = getProcessOutput(
+    s"${Constants.ExifToolBaseCommand.split(Constants.BlankSplitter).head.trim} -ver"
+  ).getOrElse("-1").toDouble
+
+  /** Installs a new or updated version of ExifTool */
+  def handleExifTool(): Unit = {
+    // Get the name of the dmg
+    val dmgSB: StringBuilder = new StringBuilder()
+    (new HtmlCleaner).clean(new URL(Constants.ExifToolWebsite)).getElementsByName("a", true) // Root node
+      .foreach {
+        element: TagNode =>
+          val text = StringEscapeUtils.unescapeHtml4(element.getText.toString)
+          dmgSB.append(
+            Try {
+              text.substring(
+                text.indexOf(Constants.ImageIdentifiers.head),
+                text.indexOf(Constants.ImageIdentifiers.last)
+              )
+            }.getOrElse("")
+          )
+      }
+    val dmg: String = dmgSB.toString
+    // Compare present and newest versions
+    val newestVersion: Double = dmg.substring(Constants.ImageIdentifiers.head.length + 1, dmg.length).toDouble
+    val presentVersion: Double = getPresentExifToolVersion
+    // Download if present version is older than newest version, or there is no present version
+    if(presentVersion < newestVersion) {
+      info(s"Installing the newest ExifTool version ($newestVersion)")
+      val downloadPath: String = Paths.get(Constants.DownloadFolder, dmg + Constants.ImageIdentifiers.last).toString
+      Try {
+        FileUtilities.download(Constants.ExifToolWebsite + "/" + dmg + Constants.ImageIdentifiers.last, downloadPath)
+      }
+      FileUtilities.handleImage(downloadPath, dmg)
+      // Check if newest version is present
+      if(getPresentExifToolVersion == newestVersion)
+        info(s"Newest ExifTool version ($newestVersion) is now / or has already been installed")
+      else
+        warn(s"Newest ExifTool version ($newestVersion) could not be installed")
+    }
   }
 
 }

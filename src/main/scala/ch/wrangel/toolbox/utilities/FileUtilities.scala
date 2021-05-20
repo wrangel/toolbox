@@ -1,24 +1,30 @@
 package ch.wrangel.toolbox.utilities
 
-import java.io.{BufferedWriter, File, FileWriter}
-import java.nio.file._
-
 import ch.wrangel.toolbox.Constants
+import ch.wrangel.toolbox.utilities.MiscUtilities.getProcessOutput
+import wvlet.log.LogSupport
 
+import java.io.{BufferedWriter, File, FileWriter, InputStream}
+import java.net.URI
+import java.nio.file._
+import java.time.LocalDateTime
 import scala.collection.View
 import scala.collection.mutable.ListBuffer
 import scala.io.{BufferedSource, Source}
 import scala.jdk.StreamConverters._
+import scala.util.Try
 
 /*Utilities for file manipulation */
-object FileUtilities {
+object FileUtilities extends LogSupport {
 
   /** Iterates through a directory [[String]]
    *
    * @param directory             [[String]] representation of directory path
    * @param walk                  [[Boolean]] indicating whether the iteration will be recursive
    * @return [[Seq]] of file [[Path]]s within the directory
+   * @throws NoSuchFileException: In case directory is not present
    */
+  @throws[NoSuchFileException]
   def iterateFiles(directory: String, walk: Boolean = false): View[Path] = {
     (
       if (walk) {
@@ -108,4 +114,90 @@ object FileUtilities {
     }
   }
 
+  /** Checks for zero byte size files
+    *
+    * @param directory [[String]] representation of directory path
+    */
+  def handleZeroByteLengthFiles(directory: String): Unit = {
+    val zeroByteFiles: ListBuffer[Path] = ListBuffer()
+    FileUtilities
+      .iterateFiles(directory)
+      .foreach { filePath: Path =>
+        if (Files.size(filePath) == 0) {
+          warn(s"$filePath byte size is 0")
+          zeroByteFiles += filePath
+        }
+      }
+    FileUtilities.moveFiles(zeroByteFiles,
+                            Paths.get(directory, Constants.ZeroByteFolder))
+  }
+
+  /** Prepares an element of the treated files map
+    *
+    * @param filePath      [[Path]] to the file
+    * @param ldt           [[LocalDateTime]] of the file, needed for renaming
+    * @param needsRenaming Flag indicating whether renaming is necessary
+    * @return [[Tuple2]] holding both [[Path]] to the renamed file and the file's [[LocalDateTime]]
+    */
+  def prepareFile(filePath: Path,
+                  ldt: LocalDateTime,
+                  needsRenaming: Boolean): (Path, LocalDateTime) = {
+    (
+      if (needsRenaming)
+        TimestampUtilities.writeTimestampInFilename(filePath, ldt)
+      else
+        filePath,
+      ldt
+    )
+  }
+
+  /** Downloads a resource from the internet to a location on the computer
+   *
+   * @param sourceUrl String representation of download URL
+   * @param targetFileName String representation of download path
+   * @throws NoSuchFileException: In case file is not present
+   */
+  @throws[NoSuchFileException]
+  def download(sourceUrl: String, targetFileName: String): Long = try {
+    val in: InputStream = URI.create(sourceUrl).toURL.openStream
+    try Files.copy(in, Paths.get(targetFileName))
+    finally if (in != null) in.close()
+  }
+
+  /** Attaches and mounts image, executes the pkg installer, and eventually cleans up all resources
+   *
+   * @param downloadPath String representation of path to downloaded file
+   * @param dmg Name of the dmg image
+   */
+  def handleImage(downloadPath: String, dmg: String): Unit = {
+    Try {
+      val attachedImage = getProcessOutput(
+        s"${Constants.HdiUtilIdentifier} attach $downloadPath"
+      ).get.split("\n")
+        .filter(_.contains(dmg)).head
+        .split(Constants.BlankSplitter).head
+        .trim
+      val mountedImage: String = getProcessOutput(
+        s"${Constants.HdiUtilIdentifier} mount $attachedImage"
+      ).getOrElse("").split(Constants.BlankSplitter).last.trim
+      val mountVolume: String = getProcessOutput(s"ls $mountedImage").head
+      val pkg: String = Paths.get("/Volumes/", dmg, mountVolume).toString
+      getProcessOutput( s"sudo installer -verbose -pkg $pkg -target /")
+      cleanUp(attachedImage, mountedImage, downloadPath)
+    }
+  }
+
+  /** Cleans up download, and unmounts disk images and volumes
+   *
+   * @param attachedImage String Name of the attached image
+   * @param mountedImage String Name of the mounted image
+   * @param downloadPath String representation of path to downloaded file
+   */
+  def cleanUp(attachedImage: String, mountedImage: String, downloadPath: String): Unit = {
+    Seq(attachedImage, mountedImage).foreach {
+      img: String =>
+        getProcessOutput(s"${Constants.HdiUtilIdentifier} unmount $img")
+    }
+    getProcessOutput(s"rm $downloadPath")
+  }
 }
