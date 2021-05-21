@@ -7,7 +7,7 @@ import wvlet.log.LogSupport
 
 import java.net.URL
 import java.nio.file.Paths
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.io.StdIn
 import scala.sys.process.{Process, ProcessLogger}
 import scala.util.Try
@@ -114,28 +114,29 @@ object MiscUtilities extends LogSupport {
   }
 
   /** Send mac to caffeinate mode and thus preventing it from going to sleep mode
-   *
-   * @return Int representing PID
    */
-  def caffeinate(): Int = {
-    val pid: String = MiscUtilities.getProcessOutput(
-      """osascript -e 'tell application "Terminal" to do script "echo $$; caffeinate"'"""
-    ).get
-    pid.substring(
-      pid.indexOf(
-        Constants.PidElements.head
-      ) + Constants.PidElements.head.length, pid.length + 1
-    ).toInt
+  def caffeinate(): Unit = {
+    MiscUtilities.getProcessOutput(
+      s"""osascript -e 'tell application "Terminal" to do script "${Constants.CaffeinateIdentifier}"'"""
+    )
   }
 
-  /** Set Mac back to normal with sleeping mode
-   *
-   * @param pid Int representing the PID to be killed
+  /** Set Mac back to normal with sleeping mode.
+   * Requires at least 2 rounds of pgrep
    */
-  def decaffeinate(pid: Int): Unit = {
-    MiscUtilities.getProcessOutput(
-      Constants.PidElements.last + pid
-    )
+  def decaffeinate(): Unit = {
+    val output: ArrayBuffer[Option[String]] = ArrayBuffer(None)
+    while(output.flatten.isEmpty) {
+      output.append(MiscUtilities.getProcessOutput(s"pgrep ${Constants.CaffeinateIdentifier}"))
+    }
+    output.flatten
+      .head.split("\n")
+      .map {
+        pid: String =>
+          MiscUtilities.getProcessOutput(
+            s"kill $pid"
+          )
+      }
   }
 
 }

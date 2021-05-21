@@ -11,6 +11,9 @@ object Constants {
   /** Representation of blank split character */
   final val BlankSplitter: String = " "
 
+  /** Representation of caffeinate identifier */
+  final val CaffeinateIdentifier = "caffeinate"
+
   /** Default [[String]] for imputing as day of month into dates */
   final val DefaultDay: String = "01"
 
@@ -71,9 +74,6 @@ object Constants {
   /** String indicating a partition */
   final val PartitionString: String = "__"
 
-  /** Elements for identifying and killing Process IDs (PID) */
-  final val PidElements: Seq[String] = Seq("window id", "kill ") // Make final, to Constants
-
   /** Collection of reference exif timestamps */
   final val ReferenceExifTimestamps: Seq[String] = Seq(
     "DateTimeOriginal",
@@ -82,8 +82,7 @@ object Constants {
 
   /** End screen */
   val TextEnd: String = {
-    """The procedure ran through.\n
-      |You may close all associated Terminal windows now.
+    """The procedure ran through. You may close all associated Terminal windows now.
       |""".stripMargin
   }
 
