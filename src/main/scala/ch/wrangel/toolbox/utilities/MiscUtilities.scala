@@ -113,11 +113,15 @@ object MiscUtilities extends LogSupport {
     }
   }
 
-  /** Send mac to caffeinate mode and thus preventing it from going to sleep mode
+  /** Send mac to caffeinate mode and thus preventing it from going to sleep mode.
+   * Minimize all Terminal windows
    */
   def caffeinate(): Unit = {
     MiscUtilities.getProcessOutput(
       s"""osascript -e 'tell application "Terminal" to do script "${Constants.CaffeinateIdentifier}"'"""
+    )
+    MiscUtilities.getProcessOutput(
+      """osascript -e 'tell application "Terminal" to set miniaturized of every window to true'"""
     )
   }
 
