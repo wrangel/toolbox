@@ -3,7 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/toolbox_jar</output-path>
     <root id="root">
       <element id="archive" name="toolbox.jar">
-        <element id="module-output" name="toolbox" />
+        <element id="module-output" name="timestampToolbox" />
       </element>
       <element id="library" level="project" name="sbt: org.scala-lang:scala-library:2.13.2:jar" />
     </root>
