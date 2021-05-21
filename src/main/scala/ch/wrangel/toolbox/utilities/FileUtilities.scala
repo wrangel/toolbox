@@ -12,7 +12,6 @@ import scala.collection.View
 import scala.collection.mutable.ListBuffer
 import scala.io.{BufferedSource, Source}
 import scala.jdk.StreamConverters._
-import scala.util.Try
 
 /*Utilities for file manipulation */
 object FileUtilities extends LogSupport {
@@ -170,21 +169,21 @@ object FileUtilities extends LogSupport {
    * @param dmg Name of the dmg image
    */
   def handleImage(downloadPath: String, dmg: String): Unit = {
-    Try {
-      val attachedImage = getProcessOutput(
-        s"${Constants.HdiUtilIdentifier} attach $downloadPath"
-      ).get.split("\n")
-        .filter(_.contains(dmg)).head
-        .split(Constants.BlankSplitter).head
-        .trim
-      val mountedImage: String = getProcessOutput(
-        s"${Constants.HdiUtilIdentifier} mount $attachedImage"
-      ).getOrElse("").split(Constants.BlankSplitter).last.trim
-      val mountVolumeContents: String = getProcessOutput(s"ls $mountedImage").head
-      val pkgName: String = Paths.get("/Volumes/", dmg, mountVolumeContents).toString
-      getProcessOutput( s"sudo -A installer -pkg $pkgName -target /") // TODO
-      cleanUp(attachedImage, mountedImage, downloadPath)
-    }
+    val attachedImage = getProcessOutput(
+      s"${Constants.HdiUtilIdentifier} attach $downloadPath"
+    ).get.split("\n")
+      .filter(_.contains(dmg)).head
+      .split(Constants.BlankSplitter).head
+      .trim
+    val mountedImage: String = getProcessOutput(
+      s"${Constants.HdiUtilIdentifier} mount $attachedImage"
+    ).getOrElse("").split(Constants.BlankSplitter).last.trim
+    val mountVolumeContents: String = getProcessOutput(s"ls $mountedImage").head
+    val pkgName: String = Paths.get("/Volumes/", dmg, mountVolumeContents).toString
+    MiscUtilities.getProcessOutput(
+      s"""osascript -e 'do shell script "installer -pkg $pkgName -target /" with administrator privileges'"""
+    )
+    cleanUp(attachedImage, mountedImage, downloadPath)
   }
 
   /** Cleans up download, and unmounts disk images and volumes
