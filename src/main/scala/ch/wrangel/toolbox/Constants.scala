@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import scala.util.matching.Regex
 
-/* Holds project wide constants */
+/** Holds project wide constants */
 object Constants {
 
   /** Representation of blank split character */
@@ -48,13 +48,13 @@ object Constants {
   final val isNotExiftoolTmpFile: String => Boolean =
     (filename: String) => !filename.endsWith("exiftool_tmp")
 
-  /* Conversion from full name to setFile identifier */
+  /** Conversion from full name to setFile identifier */
   final val MacOsTimestampTags: Map[String, Seq[String]] = Map(
     "create" -> Seq("d"),
     "modify" -> Seq("m")
   )
 
-  /* Key for expressing not applicable timestamp while checking secondary timestamps */
+  /** Key for expressing not applicable timestamp while checking secondary timestamps */
   final val NonApplicableKey: String = "-"
 
   /** Allowed argument space */
@@ -69,17 +69,58 @@ object Constants {
     Seq("-v") -> Seq("validate")
   )
 
-  /* String indicating a partition */
+  /** String indicating a partition */
   final val PartitionString: String = "__"
 
-  /* Elements for identifying and killing Process IDs (PID) */
+  /** Elements for identifying and killing Process IDs (PID) */
   final val PidElements: Seq[String] = Seq("window id", "kill ") // Make final, to Constants
 
-  /* Collection of reference exif timestamps */
+  /** Collection of reference exif timestamps */
   final val ReferenceExifTimestamps: Seq[String] = Seq(
     "DateTimeOriginal",
     "CreateDate"
   )
+
+  /** End screen */
+  val TextEnd: String = {
+    """The procedure ran through.\n
+      |You may close all associated Terminal windows now.
+      |""".stripMargin
+  }
+
+  /** Welcome screen */
+  val TextWelcome: String = {
+    """Welcome to the photo and video timestamp toolbox.
+      |This command line tool only works on Mac.
+      |It makes use of ExifTool (https://exiftool.org), installs it or updates it whenever necessary,
+      |and an internet connection is available.
+      |Parameters:
+      |   -e, -r, -s <directory string>
+      |       Primary exif timestamps as reference (CreateDate and DateTimeOriginal)
+      |       Rename the file with a prepending timestamp
+      |       Treat secondary timestamps as well (not CreateDate or DateTimeOriginal)
+      |   -e -r <directory string>
+      |       Primary exif timestamps as reference (CreateDate and DateTimeOriginal)
+      |       Rename the file with a prepending timestamp
+      |   -e <directory string>
+      |       Primary exif timestamps as reference (CreateDate and DateTimeOriginal)
+      |   -f -r -e <directory string>
+      |       Valid timestamp contained in filename as reference
+      |       Rename the file with a prepending timestamp
+      |       Treat exif timestamps
+      |   -f -r <directory string>
+      |       Valid timestamp contained in filename as reference
+      |       Rename the file with a prepending timestamp
+      |   -f -e <directory string>
+      |       Valid timestamp contained in filename as reference
+      |       Treat exif timestamps
+      |   -f <directory string>
+      |       Valid timestamp contained in filename as reference
+      |   -v <directory string>
+      |       Validate if the timestamp in file name and principal exif timestamps
+      |       (DateTimeOriginal / Create Date) coincide. Move the file to a sub folder otherwise
+      |""".stripMargin
+  }
 
   /** Patterns to detect timestamps or dates hidden in file names */
   final val TimestampAndDatePatterns: Seq[Regex] = Seq(
@@ -98,7 +139,7 @@ object Constants {
     "[0-9]{6}"
   ).map(_.r)
 
-  /* Collection of [[DateTimeFormatter]] patterns for relevant timestamp groups */
+  /** Collection of [[DateTimeFormatter]] patterns for relevant timestamp groups */
   final val TimestampFormatters: Map[String, DateTimeFormatter] = Map(
     "exif" -> DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss"),
     "exif2" -> DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
@@ -122,40 +163,6 @@ object Constants {
 
   /** Folder name for files having undergone unsuccessful exif manipulation */
   final val UnsuccessfulFolder: String = "_unsuccessful"
-
-  /** Welcome screen */
-  val WelcomeText: String = {
-    """Welcome to the photo and video timestamp toolbox.
-        |This command line tool only works on Mac.
-        |It makes use of ExifTool (https://exiftool.org), installs it or updates it whenever necessary,
-        |and an internet connection is available.
-        |Parameters:
-        |   -e, -r, -s <directory string>
-        |       Primary exif timestamps as reference (CreateDate and DateTimeOriginal)
-        |       Rename the file with a prepending timestamp
-        |       Treat secondary timestamps as well (not CreateDate or DateTimeOriginal)
-        |   -e -r <directory string>
-        |       Primary exif timestamps as reference (CreateDate and DateTimeOriginal)
-        |       Rename the file with a prepending timestamp
-        |   -e <directory string>
-        |       Primary exif timestamps as reference (CreateDate and DateTimeOriginal)
-        |   -f -r -e <directory string>
-        |       Valid timestamp contained in filename as reference
-        |       Rename the file with a prepending timestamp
-        |       Treat exif timestamps
-        |   -f -r <directory string>
-        |       Valid timestamp contained in filename as reference
-        |       Rename the file with a prepending timestamp
-        |   -f -e <directory string>
-        |       Valid timestamp contained in filename as reference
-        |       Treat exif timestamps
-        |   -f <directory string>
-        |       Valid timestamp contained in filename as reference
-        |   -v <directory string>
-        |       Validate if the timestamp in file name and principal exif timestamps
-        |       (DateTimeOriginal / Create Date) coincide. Move the file to a sub folder otherwise
-        |""".stripMargin
-  }
 
   /** Folder name for files having zero byte size */
   final val ZeroByteFolder: String = "_zeroByte"

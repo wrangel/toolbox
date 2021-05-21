@@ -11,8 +11,8 @@ object Main extends App {
   if (Constants.ParameterSpace.keys.toSeq.contains(relevantParameters)) {
     val arguments
       : Seq[String] = Constants.ParameterSpace(relevantParameters) :+ args.last
-    // Prevent Mac from going to sleep
-    val killPidStatement: String = MiscUtilities.caffeinate()
+    // Caffeinate Mac and collect the PID of this workload
+    val pid: Int = MiscUtilities.caffeinate()
     // Install or update ExifTool, if necessary
     MiscUtilities.handleExifTool()
     // Handle the ExifTool config file
@@ -28,11 +28,11 @@ object Main extends App {
         arguments(2).toBoolean // Handle secondary timestamps
       }.getOrElse(false)
     )
-    // Kill caffeinate PID and send final message
+    // Decaffeinate Mac by killing the associated PID
+    MiscUtilities.decaffeinate(pid)
 
-
-
+    // and send final message
   } else
-    System.out.println(Constants.WelcomeText)
+    System.out.println(Constants.TextWelcome)
 
 }
