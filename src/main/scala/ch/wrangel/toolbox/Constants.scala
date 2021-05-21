@@ -72,6 +72,9 @@ object Constants {
   /* String indicating a partition */
   final val PartitionString: String = "__"
 
+  /* Elements for identifying and killing Process IDs (PID) */
+  final val PidElements: Seq[String] = Seq("window id", "kill ") // Make final, to Constants
+
   /* Collection of reference exif timestamps */
   final val ReferenceExifTimestamps: Seq[String] = Seq(
     "DateTimeOriginal",

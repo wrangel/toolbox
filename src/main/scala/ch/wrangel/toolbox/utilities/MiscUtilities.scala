@@ -113,4 +113,19 @@ object MiscUtilities extends LogSupport {
     }
   }
 
+  /** Send mac to caffeinate mode and thus preventing it from going to sleep mode
+   *
+   * @return String representing statement for killing PID
+   */
+  def caffeinate(): String = {
+    val caffeinatePid: String = MiscUtilities.getProcessOutput(
+      """osascript -e 'tell application "Terminal" to do script "echo $$; caffeinate"'"""
+    ).get
+    Constants.PidElements.last + caffeinatePid.substring(
+      caffeinatePid.indexOf(
+        Constants.PidElements.head
+      ) + Constants.PidElements.head.length, caffeinatePid.length + 1
+    )
+  }
+
 }
