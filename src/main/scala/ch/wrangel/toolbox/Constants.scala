@@ -23,10 +23,6 @@ object Constants {
   /** Excluded file types */
   final val ExcludedFileTypes: Seq[String] = Seq(".txt")
 
-  /** Exif tool base command */
-  final val ExifToolBaseCommand: String =
-    s"/usr/local/bin/exiftool -config $ExifToolConfigFilePath"
-
   /** Content of exif config file */
   final val ExifToolConfigFileContent: String =
     "%Image::ExifTool::UserDefined::Options = (\n\tLargeFileSupport => 1,\n);"
@@ -35,6 +31,9 @@ object Constants {
   final val ExifToolConfigFilePath: Path =
     Paths.get(System.getProperty("user.dir"), "exif.config")
 
+  /** Exif tool base command */
+  final val ExifToolBaseCommand: String =
+    s"/usr/local/bin/exiftool -config $ExifToolConfigFilePath"
   /** ExifTool main website */
   final val ExifToolWebsite: String = "https://exiftool.org"
 
