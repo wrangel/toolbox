@@ -12,19 +12,8 @@ object Main extends App with LogSupport {
   if (Constants.ParameterSpace.keys.toSeq.contains(relevantParameters)) {
     val arguments
       : Seq[String] = Constants.ParameterSpace(relevantParameters) :+ args.last
-
-
-
-    MiscUtilities.getProcessOutput(
-      """/usr/local/bin/exiftool -config /Users/matthiaswettstein/sandbox/scala/toolbox/exif.config -time:all -m -s "/Users/matthiaswettstein/Desktop/e/Ukraine11180606 2551648416321474238436849905672327.jpg"
-        |""".stripMargin)
-      .get
-    System.exit(0)
-    // TODO
-
-
     // Prevent mac from going to sleep
-    ////MiscUtilities.caffeinate() // TODO
+    MiscUtilities.caffeinate()
     // Install or update ExifTool, if necessary
     MiscUtilities.handleExifTool()
     // Handle the ExifTool config file

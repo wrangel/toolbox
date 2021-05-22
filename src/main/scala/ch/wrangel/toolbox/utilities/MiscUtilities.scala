@@ -79,37 +79,42 @@ object MiscUtilities extends LogSupport {
 
   /** Installs a new or updated version of ExifTool */
   def handleExifTool(): Unit = {
-    // Get the name of the dmg
-    val dmgSB: StringBuilder = new StringBuilder()
-    (new HtmlCleaner).clean(new URL(Constants.ExifToolWebsite)).getElementsByName("a", true) // Root node
-      .foreach {
-        element: TagNode =>
-          val text = StringEscapeUtils.unescapeHtml4(element.getText.toString)
-          dmgSB.append(
-            Try {
-              text.substring(
-                text.indexOf(Constants.ImageIdentifiers.head),
-                text.indexOf(Constants.ImageIdentifiers.last)
-              )
-            }.getOrElse("")
-          )
+    try {
+      // Get the name of the dmg
+      val dmgSB: StringBuilder = new StringBuilder()
+      (new HtmlCleaner).clean(new URL(Constants.ExifToolWebsite)).getElementsByName("a", true) // Root node
+        .foreach {
+          element: TagNode =>
+            val text = StringEscapeUtils.unescapeHtml4(element.getText.toString)
+            dmgSB.append(
+              Try {
+                text.substring(
+                  text.indexOf(Constants.ImageIdentifiers.head),
+                  text.indexOf(Constants.ImageIdentifiers.last)
+                )
+              }.getOrElse("")
+            )
+        }
+      val dmg: String = dmgSB.toString
+      // Compare present and newest versions
+      val newestVersion: Double = dmg.substring(Constants.ImageIdentifiers.head.length + 1, dmg.length).toDouble
+      val presentVersion: Double = getPresentExifToolVersion
+      // Download if present version is older than newest version, or there is no present version
+      if(presentVersion < newestVersion) {
+        val downloadPath: String = Paths.get(Constants.DownloadFolder, dmg + Constants.ImageIdentifiers.last).toString
+        Try {
+          FileUtilities.download(Constants.ExifToolWebsite + "/" + dmg + Constants.ImageIdentifiers.last, downloadPath)
+        }
+        FileUtilities.handleImage(downloadPath, dmg)
+        // Check if newest version is present
+        if(getPresentExifToolVersion == newestVersion)
+          info(s"Newest ExifTool version ($newestVersion) is now / or has already been installed")
+        else
+          warn(s"Newest ExifTool version ($newestVersion) could not be installed")
       }
-    val dmg: String = dmgSB.toString
-    // Compare present and newest versions
-    val newestVersion: Double = dmg.substring(Constants.ImageIdentifiers.head.length + 1, dmg.length).toDouble
-    val presentVersion: Double = getPresentExifToolVersion
-    // Download if present version is older than newest version, or there is no present version
-    if(presentVersion < newestVersion) {
-      val downloadPath: String = Paths.get(Constants.DownloadFolder, dmg + Constants.ImageIdentifiers.last).toString
-      Try {
-        FileUtilities.download(Constants.ExifToolWebsite + "/" + dmg + Constants.ImageIdentifiers.last, downloadPath)
-      }
-      FileUtilities.handleImage(downloadPath, dmg)
-      // Check if newest version is present
-      if(getPresentExifToolVersion == newestVersion)
-        info(s"Newest ExifTool version ($newestVersion) is now / or has already been installed")
-      else
-        warn(s"Newest ExifTool version ($newestVersion) could not be installed")
+    } catch {
+      case _: java.net.UnknownHostException =>
+        warn(s"You are offline. No attempt to install newest ExifTool version")
     }
   }
 
