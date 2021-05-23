@@ -138,14 +138,14 @@ object MiscUtilities extends LogSupport {
     while(output.flatten.isEmpty) {
       output.append(MiscUtilities.getProcessOutput(s"pgrep ${Constants.CaffeinateIdentifier}"))
     }
-    output.flatten
-      .head.split("\n")
-      .map {
-        pid: String =>
-          MiscUtilities.getProcessOutput(
-            s"kill $pid"
-          )
-      }
+    // Kill one caffeinate process, if there is one (there should be one, anyway)
+    Try {
+      MiscUtilities.getProcessOutput(
+        s"kill ${output.flatten
+          .head.split("\n")
+          .headOption.get.trim}"
+      )
+    }
   }
 
 }
