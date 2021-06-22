@@ -1,6 +1,7 @@
 package ch.wrangel.toolbox.utilities
 
 import ch.wrangel.toolbox.Constants
+import ch.wrangel.toolbox.Constants.ExifToolWebsite
 import org.apache.commons.text.StringEscapeUtils
 import org.htmlcleaner.{HtmlCleaner, TagNode}
 import wvlet.log.LogSupport
@@ -114,7 +115,9 @@ object MiscUtilities extends LogSupport {
       }
     } catch {
       case _: java.net.UnknownHostException =>
-        warn(s"You are offline. No attempt to install newest ExifTool version")
+        warn("You are offline. No attempt to install newest ExifTool version")
+      case _:  java.io.FileNotFoundException =>
+        warn(s"$ExifToolWebsite is offline")
     }
   }
 
