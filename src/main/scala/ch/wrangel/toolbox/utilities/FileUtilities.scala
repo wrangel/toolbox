@@ -169,12 +169,13 @@ object FileUtilities extends LogSupport {
    * @param dmg Name of the dmg image
    */
   def handleImage(downloadPath: String, dmg: String): Unit = {
-    val attachedImage = getProcessOutput(
+    val attachedImage: String = getProcessOutput(
       s"${Constants.HdiUtilIdentifier} attach $downloadPath"
     ).get.split("\n")
       .filter(_.contains(dmg)).head
       .split(Constants.BlankSplitter).head
       .trim
+    Thread.sleep(1000)
     val mountedImage: String = getProcessOutput(
       s"${Constants.HdiUtilIdentifier} mount $attachedImage"
     ).getOrElse("").split(Constants.BlankSplitter).last.trim
@@ -183,7 +184,11 @@ object FileUtilities extends LogSupport {
     MiscUtilities.getProcessOutput(
       s"""osascript -e 'do shell script "installer -pkg $pkgName -target /" with administrator privileges'"""
     )
+
+
     cleanUp(attachedImage, mountedImage, downloadPath)
+
+
   }
 
   /** Cleans up download, and unmounts disk images and volumes

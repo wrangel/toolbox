@@ -132,7 +132,10 @@ object TimestampUtilities extends LogSupport {
             else
               date
           } ->
-            isValidCandidate(value)
+            Try {
+              isValidCandidate(value)
+            }
+              .getOrElse(isValidCandidate(value, americanFormatSwitch = true))
       }
       .filter(_._2 == true)
       .keys
@@ -176,26 +179,41 @@ object TimestampUtilities extends LogSupport {
       .toMap
   }
 
+  /** Extracts components from a timestamp candidate
+   *
+   * @param candidate [[String]] potentially representing a valid timestamp / date
+   * @param americanFormatSwitch [[Boolean]] determines if month and day components of date have to be switched
+   * @return Seq containing all date and time components in the correct order
+   */
+  def extractTimestampComponents(candidate: String, americanFormatSwitch: Boolean): Seq[Int] = {
+    val components: ListBuffer[String] = ListBuffer[String]()
+    MiscUtilities.splitCollection(Seq(4, 2, 2, 2, 2, 2), candidate, components)
+    val c: Seq[Int] = components.map(_.toInt).toSeq
+    if(!americanFormatSwitch) c else Seq(c.head, c(2), c(1), c(3), c(4), c(5))
+  }
+
   /** Determines whether a candidate [[String]] is a valid timestamp / date
    *
    * @param candidate [[String]] potentially representing a valid timestamp / date
+   * @param americanFormatSwitch [[Boolean]] determines if month and day components of date have to be switched.
+   *        Default is false
    * @return Flag indicating whether candidate [[String]] is a valid timestamp / date
    */
-  def isValidCandidate(candidate: String): Boolean = {
-    val components: ListBuffer[String] = ListBuffer[String]()
-    MiscUtilities.splitCollection(Seq(4, 2, 2, 2, 2, 2), candidate, components)
-    val componentsInt: ListBuffer[Int] = components.map(_.toInt)
-    componentsInt.zipWithIndex
+  def isValidCandidate(candidate: String, americanFormatSwitch: Boolean = false): Boolean = {
+    val components: Seq[Int] = extractTimestampComponents(candidate, americanFormatSwitch)
+    components.zipWithIndex
       .map {
         case (timestampElement: Int, idx: Int) =>
           idx match {
+            // idx 2 is representing the days per month, which are to be calculated exactly
             case 2 =>
               Try {
                 (1 to YearMonth
-                  .of(componentsInt.head, componentsInt(1))
+                  .of(components.head, components(1))
                   .lengthOfMonth)
                   .contains(timestampElement)
-              }.getOrElse(false)
+              }
+                .getOrElse(false)
             case _ =>
               Constants
                 .TimestampRanges(idx)
