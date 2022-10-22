@@ -1,21 +1,12 @@
 package ch.wrangel.toolbox
 
+import ch.wrangel.toolbox.utilities.{FileUtilities, MiscUtilities}
 import wvlet.log.LogSupport
+
+import scala.util.Try
 
 /** Command line tool to synchronize photo file names, exif and mac timestamps */
 object Main extends App with LogSupport {
-
-  val directory = "/Users/matthiaswettstein/Downloads/foto_tmp"
-
-
-
-
-
-
-
-
-  /*
-
   val relevantParameters = args.slice(0, args.length - 1).toSeq
   if (Constants.ParameterSpace.keys.toSeq.contains(relevantParameters)) {
   val arguments
@@ -42,6 +33,4 @@ object Main extends App with LogSupport {
   info(Constants.TextEnd)
 } else
   info(Constants.TextWelcome)
-
-   */
 }

@@ -125,6 +125,7 @@ object TimestampUtilities extends LogSupport {
     identifyCandidates(directory)
       .map {
         case (filePath: Path, value: String) =>
+
           filePath -> {
             val (date: String, time: String) = value.splitAt(8)
             if (time.nonEmpty)
@@ -132,7 +133,10 @@ object TimestampUtilities extends LogSupport {
             else
               date
           } ->
-            isValidCandidate(value)
+            {println(filePath)
+            println(value)
+              println(isValidCandidate(value))
+            isValidCandidate(value)}
       }
       .filter(_._2 == true)
       .keys

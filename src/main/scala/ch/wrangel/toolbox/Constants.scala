@@ -93,7 +93,7 @@ object Constants {
       |It makes use of ExifTool (https://exiftool.org), installs it or updates it whenever necessary,
       |and an internet connection is available.
       |Parameters:
-      |   -e, -r, -s <directory string>
+      |   -e -r -s <directory string>
       |       Primary exif timestamps as reference (CreateDate and DateTimeOriginal)
       |       Rename the file with a prepending timestamp
       |       Treat secondary timestamps as well (not CreateDate or DateTimeOriginal)
