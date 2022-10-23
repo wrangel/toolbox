@@ -34,3 +34,8 @@ object Main extends App with LogSupport {
 } else
   info(Constants.TextWelcome)
 }
+
+
+// Close decaf windows
+// handle invalid files
+
