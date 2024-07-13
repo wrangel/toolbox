@@ -44,7 +44,7 @@ object Constants {
   final val HdiUtilIdentifier: String = "hdiutil"
 
   /** Set of dmg image identifiers */
-  final val ImageIdentifiers = Seq("ExifTool", ".dmg")
+  final val ImageIdentifiers = Seq("ExifTool", ".pkg")
 
   /** Identifier for exiftool temp files */
   final val isNotExiftoolTmpFile: String => Boolean =
