@@ -10,3 +10,10 @@ libraryDependencies ++= Seq(
   "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.29",
   "org.apache.commons" % "commons-text" % "1.12.0"
 )
+
+assemblyMergeStrategy in assembly := {
+  case "META-INF/versions/9/module-info.class" => MergeStrategy.first
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
