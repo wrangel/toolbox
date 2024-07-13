@@ -100,19 +100,21 @@ object MiscUtilities extends LogSupport {
       // Compare present and newest versions
       val newestVersion: Double = pkg.substring(Constants.ImageIdentifiers.head.length + 1, pkg.length).toDouble
       val presentVersion: Double = getPresentExifToolVersion
+      
       // Download if present version is older than newest version, or there is no present version
       if(presentVersion < newestVersion) {
         val downloadPath: String = Paths.get(Constants.DownloadFolder, pkg + Constants.ImageIdentifiers.last).toString
         Try {
           FileUtilities.download(Constants.ExifToolWebsite + "/" + pkg + Constants.ImageIdentifiers.last, downloadPath)
-        }
+        } /* TODO Fix for pkg
         FileUtilities.handleImage(downloadPath, pkg)
+        */
         // Check if newest version is present
         if(getPresentExifToolVersion == newestVersion)
           info(s"Newest ExifTool version ($newestVersion) is now / or has already been installed")
         else
           warn(s"Newest ExifTool version ($newestVersion) could not be installed")
-      }
+      } 
     } catch {
       case _: java.net.UnknownHostException =>
         warn("You are offline. No attempt to install newest ExifTool version")

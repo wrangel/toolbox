@@ -9,6 +9,7 @@ import java.time.LocalDateTime
 import scala.collection.View
 import scala.collection.mutable.ListBuffer
 import scala.io.{BufferedSource, Source}
+import scala.io.StdIn.readLine
 import scala.jdk.StreamConverters._
 import wvlet.log.LogSupport
 
@@ -167,29 +168,39 @@ object FileUtilities extends LogSupport {
   /** Attaches and mounts image, executes the pkg installer, and eventually cleans up all resources
    *
    * @param downloadPath String representation of path to downloaded file
-   * @param dmg Name of the dmg image
+   * @param pkg Name of the pkg image
    */
-  def handleImage(downloadPath: String, dmg: String): Unit = {
+  def handleImage(downloadPath: String, pkg: String): Unit = {
+    /* TODO Fix 
+    val password = readLine("Enter your admin password: ")
+    val a = getProcessOutput(
+      s"echo $password | sudo -S ${Constants.PackageHandlerIdentifier} -verboseR -pkg $downloadPath -target /"
+    )
     val attachedImage: String = getProcessOutput(
-      s"${Constants.HdiUtilIdentifier} attach $downloadPath"
+      s"${Constants.PackageHandlerIdentifier} -verboseR -pkg $downloadPath -target /"
     ).get.split("\n")
-      .filter(_.contains(dmg)).head
+    .filter(_.contains("install:"))
+    .head
+    .split(Constants.BlankSplitter).last
+    .trim
+      /*getProcessOutput(
+      s"${Constants.PackageHandlerIdentifier} attach $downloadPath"
+    ).get.split("\n")
+      .filter(_.contains(pkg)).head
       .split(Constants.BlankSplitter).head
       .trim
+      */
     Thread.sleep(1000)
     val mountedImage: String = getProcessOutput(
-      s"${Constants.HdiUtilIdentifier} mount $attachedImage"
+      s"${Constants.PackageHandlerIdentifier} mount $attachedImage"
     ).getOrElse("").split(Constants.BlankSplitter).last.trim
     val mountVolumeContents: String = getProcessOutput(s"ls $mountedImage").head
-    val pkgName: String = Paths.get("/Volumes/", dmg, mountVolumeContents).toString
+    val pkgName: String = Paths.get("/Volumes/", pkg, mountVolumeContents).toString
     MiscUtilities.getProcessOutput(
       s"""osascript -e 'do shell script "installer -pkg $pkgName -target /" with administrator privileges'"""
     )
-
-
     cleanUp(attachedImage, mountedImage, downloadPath)
-
-
+    */
   }
 
   /** Cleans up download, and unmounts disk images and volumes
@@ -202,7 +213,7 @@ object FileUtilities extends LogSupport {
     /*
     Seq(attachedImage, mountedImage).foreach {
       (img: String) =>
-        getProcessOutput(s"${Constants.HdiUtilIdentifier} unmount $img")
+        getProcessOutput(s"${Constants.PackageHandlerIdentifier} unmount $img")
     }
      */
     getProcessOutput(s"rm $downloadPath")

@@ -40,8 +40,8 @@ object Constants {
   /** ExifTool main website */
   final val ExifToolWebsite: String = "https://exiftool.org"
 
-  /** Identifying string for hdutil command line tool */
-  final val HdiUtilIdentifier: String = "hdiutil"
+  /** Identifying string for package handler command line tool */
+  final val PackageHandlerIdentifier: String = "installer"
 
   /** Set of dmg image identifiers */
   final val ImageIdentifiers = Seq("ExifTool", ".pkg")
