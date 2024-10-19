@@ -3,10 +3,10 @@ package ch.wrangel.toolbox.utilities
 
 import ch.wrangel.toolbox.Constants
 import ch.wrangel.toolbox.Constants.ExifToolWebsite
+import net.sourceforge.htmlcleaner.HtmlCleaner
 import java.net.URL
 import java.nio.file.Paths
 import org.apache.commons.text.StringEscapeUtils
-import org.htmlcleaner.{HtmlCleaner, TagNode}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.io.StdIn
 import scala.sys.process.{Process, ProcessLogger}

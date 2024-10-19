@@ -5,6 +5,7 @@ organization := "ch.wrangel.toolbox"
 version := "2.1"
 
 libraryDependencies ++= Seq(
+  "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.29",
   "org.wvlet.airframe" %% "airframe-log" % "24.9.3", 
   "org.apache.commons" % "commons-text" % "1.12.0",
   "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",

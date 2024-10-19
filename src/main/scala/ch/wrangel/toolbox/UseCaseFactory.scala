@@ -9,6 +9,9 @@ import wvlet.log.LogSupport
 import scala.collection.parallel.CollectionConverters._
 import scala.jdk.CollectionConverters._
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ConcurrentHashMap
+import scala.collection.mutable.ListBuffer
+
 
 /** Protective object around use case singletons
   * https://alvinalexander.com/scala/factory-pattern-in-scala-design-patterns/
@@ -72,7 +75,7 @@ object UseCaseFactory extends LogSupport {
       * @param filePath [[Path]] to the file
       * @param needsRenaming Flag indicating whether to rename the file
       */
-    private def handlePrincipalTimestamps(
+      private def handlePrincipalTimestamps(
         principalTimestamps: Map[String, Option[LocalDateTime]],
         filePath: Path,
         needsRenaming: Boolean

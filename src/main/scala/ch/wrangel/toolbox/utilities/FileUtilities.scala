@@ -14,6 +14,7 @@ import scala.collection.parallel.CollectionConverters._
 import scala.io.{BufferedSource, Source}
 import scala.jdk.StreamConverters._
 import wvlet.log.LogSupport
+import scala.util.control.NonFatal
 
 
 /*Utilities for file manipulation */
@@ -154,10 +155,19 @@ object FileUtilities extends LogSupport {
    * @throws NoSuchFileException: In case file is not present
    */
   @throws[NoSuchFileException]
-  def download(sourceUrl: String, targetFileName: String): Long = try {
-    val in: InputStream = URI.create(sourceUrl).toURL.openStream
-    try Files.copy(in, Paths.get(targetFileName))
-    finally if (in != null) in.close()
+  def download(sourceUrl: String, targetFileName: String): Long = {
+    try {
+      val in: InputStream = URI.create(sourceUrl).toURL.openStream
+      try {
+        Files.copy(in, Paths.get(targetFileName))
+      } finally {
+        if (in != null) in.close()
+      }
+    } catch {
+      case NonFatal(e) =>
+        error(s"An error occurred while downloading the file: ${e.getMessage}")
+        throw new NoSuchFileException(s"Failed to download from $sourceUrl")
+    }
   }
 
   /** Attaches and mounts image, executes the pkg installer, and eventually cleans up all resources
