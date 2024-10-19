@@ -93,24 +93,18 @@ object MiscUtilities extends LogSupport {
       val cleaner = new HtmlCleaner()
       val rootNode: TagNode = cleaner.clean(inputStream)
       inputStream.close()
-
-      val aElements = rootNode.getElementsByName("a", true)
-      println(aElements)
-
-  /*
-
-      (new HtmlCleaner).clean(URL(Constants.ExifToolWebsite)).getElementsByName("a", true) // Root node
-        .foreach {
-          (element: TagNode) =>
-            val text = StringEscapeUtils.unescapeHtml4(element.getText.toString)
-            dmgSB.append(
-              Try {
-                text.substring(
-                  text.indexOf(Constants.ImageIdentifiers.head),
-                  text.indexOf(Constants.ImageIdentifiers.last)
-                )
-              }.getOrElse("")
-            )
+      val aElements = rootNode.getElementsByName("a", true) // Root node
+      aElements.foreach {
+        (element: TagNode) =>
+          val text = StringEscapeUtils.unescapeHtml4(element.getText.toString)
+          dmgSB.append(
+            Try {
+              text.substring(
+                text.indexOf(Constants.ImageIdentifiers.head),
+                text.indexOf(Constants.ImageIdentifiers.last)
+              )
+            }.getOrElse("")
+          )
         }
       val dmg: String = dmgSB.toString
       // Compare present and newest versions
@@ -128,7 +122,7 @@ object MiscUtilities extends LogSupport {
           info(s"Newest ExifTool version ($newestVersion) is now / or has already been installed")
         else
           warn(s"Newest ExifTool version ($newestVersion) could not be installed")
-      }*/
+      }
     } catch {
       case _: java.net.UnknownHostException =>
         warn("You are offline. No attempt to install newest ExifTool version")
