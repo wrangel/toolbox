@@ -1,3 +1,5 @@
+import sbtassembly.AssemblyPlugin.autoImport._
+
 scalaVersion := "3.3.3"
 
 name := "timestamptools"
@@ -20,3 +22,10 @@ scalacOptions ++= Seq(
   "-unchecked",
   "-Xmax-inlines:64"
 )
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", "versions", "9", "module-info.class") => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
