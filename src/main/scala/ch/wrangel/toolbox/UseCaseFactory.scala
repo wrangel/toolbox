@@ -236,9 +236,9 @@ object UseCaseFactory extends LogSupport {
     * @return Use case singleton
     */
   def apply(useCase: String): UseCase = useCase match {
-      case "e" => ExifAsReference
-      case "f" => FileNameAsReference
-      case "v" => Validate
+      case "exif" => ExifAsReference
+      case "file" => FileNameAsReference
+      case "validate" => Validate
       case _ => throw new IllegalArgumentException(s"Unknown use case: $useCase")
     }
 }

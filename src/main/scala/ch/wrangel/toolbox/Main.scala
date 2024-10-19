@@ -14,16 +14,6 @@ object Main extends LogSupport {
       // Handle zero bytes files
       val arguments: Seq[String] = Constants.ParameterSpace(relevantParameters) :+ args.last
       FileUtilities.handleZeroByteLengthFiles(arguments.last)
-
-      
-      Constants.ParameterSpace(relevantParameters).foreach(println)
-      println("...")
-      relevantParameters.foreach(println)
-      println("...")
-      arguments.foreach(println)
-      sys.exit()
-
-
       UseCaseFactory(arguments.head).run(
         arguments.last,
         Try{arguments(1).toBoolean}.getOrElse(false),
