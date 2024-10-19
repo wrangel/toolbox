@@ -9,13 +9,12 @@ import java.nio.file._
 import java.time.LocalDateTime
 import scala.collection.View
 import scala.collection.mutable.ListBuffer
-import scala.jdk.CollectionConverters._
 import scala.collection.parallel.CollectionConverters._
 import scala.io.{BufferedSource, Source}
+import scala.jdk.CollectionConverters._
 import scala.jdk.StreamConverters._
-import wvlet.log.LogSupport
 import scala.util.control.NonFatal
-
+import wvlet.log.LogSupport
 
 /*Utilities for file manipulation */
 object FileUtilities extends LogSupport {

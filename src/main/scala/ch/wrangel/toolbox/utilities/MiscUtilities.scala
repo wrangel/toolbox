@@ -2,6 +2,8 @@ package ch.wrangel.toolbox.utilities
 
 import ch.wrangel.toolbox.Constants
 import ch.wrangel.toolbox.Constants.ExifToolWebsite
+import java.io.InputStream
+import java.net.URI
 import java.net.URL
 import java.nio.file.Paths
 import org.apache.commons.text.StringEscapeUtils
@@ -78,11 +80,17 @@ object MiscUtilities extends LogSupport {
     s"${Constants.ExifToolBaseCommand.split(Constants.BlankSplitter).head.trim} -ver"
   ).getOrElse("-1").toDouble
 
+
+
   /** Installs a new or updated version of ExifTool */
   def handleExifTool(): Unit = {
     try {
       // Get the name of the dmg
       val dmgSB: StringBuilder = new StringBuilder()
+      println("here")
+      println(dmgSB)
+  /*
+
       (new HtmlCleaner).clean(URL(Constants.ExifToolWebsite)).getElementsByName("a", true) // Root node
         .foreach {
           (element: TagNode) =>
@@ -112,7 +120,7 @@ object MiscUtilities extends LogSupport {
           info(s"Newest ExifTool version ($newestVersion) is now / or has already been installed")
         else
           warn(s"Newest ExifTool version ($newestVersion) could not be installed")
-      }
+      }*/
     } catch {
       case _: java.net.UnknownHostException =>
         warn("You are offline. No attempt to install newest ExifTool version")
@@ -121,34 +129,5 @@ object MiscUtilities extends LogSupport {
     }
   }
 
-  /** Send mac to caffeinate mode and thus preventing it from going to sleep mode.
-   * Minimize all Terminal windows
-   */
-  def caffeinate(): Unit = {
-    MiscUtilities.getProcessOutput(
-      s"""osascript -e 'tell application "Terminal" to do script "${Constants.CaffeinateIdentifier}"'"""
-    )
-    MiscUtilities.getProcessOutput(
-      """osascript -e 'tell application "Terminal" to set miniaturized of every window to true'"""
-    )
-  }
-
-  /** Set Mac back to normal with sleeping mode.
-   * Requires at least 2 rounds of pgrep
-   */
-  def decaffeinate(): Unit = {
-    val output: ArrayBuffer[Option[String]] = ArrayBuffer(None)
-    while(output.flatten.isEmpty) {
-      output.append(MiscUtilities.getProcessOutput(s"pgrep ${Constants.CaffeinateIdentifier}"))
-    }
-    // Kill one caffeinate process, if there is one (there should be one, anyway)
-    Try {
-      MiscUtilities.getProcessOutput(
-        s"kill ${output.flatten
-          .head.split("\n")
-          .headOption.get.trim}"
-      )
-    }
-  }
 
 }
