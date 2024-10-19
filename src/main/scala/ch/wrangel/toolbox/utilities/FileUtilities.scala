@@ -8,9 +8,12 @@ import java.nio.file._
 import java.time.LocalDateTime
 import scala.collection.View
 import scala.collection.mutable.ListBuffer
+import scala.jdk.CollectionConverters._
+import scala.collection.parallel.CollectionConverters._
 import scala.io.{BufferedSource, Source}
 import scala.jdk.StreamConverters._
 import wvlet.log.LogSupport
+
 
 /*Utilities for file manipulation */
 object FileUtilities extends LogSupport {
@@ -23,29 +26,21 @@ object FileUtilities extends LogSupport {
    * @throws NoSuchFileException: In case directory is not present
    */
   @throws[NoSuchFileException]
-  def iterateFiles(directory: String, walk: Boolean = false): View[Path] = {
-    (
-      if (walk) {
-        Files.walk(Paths.get(directory))
-      } else
-        Files.list(Paths.get(directory))
-      )
-      .toScala(Seq)
-      .view
-      .filter(Files.isRegularFile(_))
-      .filter {
-        (filePath: Path) =>
-          val filePathString: String = filePath.toString
-          !Files.isHidden(filePath) & { // !filePathString.contains("@") &
-            Constants.ExcludedFileTypes
-              .map {
-                (fileType: String) => 
-                  !filePathString.endsWith(fileType)
-              }
-              .forall(_ == true)
-          }
-      }
+  def iterateFiles(directory: String, walk: Boolean = false): collection.parallel.ParSeq[Path] = {
+  val paths = if (walk) {
+    Files.walk(Paths.get(directory)).iterator().asScala
+  } else {
+    Files.list(Paths.get(directory)).iterator().asScala
   }
+
+  paths.toSeq.par
+    .filter(Files.isRegularFile(_))
+    .filter { filePath =>
+      val filePathString = filePath.toString
+      !Files.isHidden(filePath) && 
+      Constants.ExcludedFileTypes.forall(!filePathString.endsWith(_))
+    }
+}
 
   /** Splits a filename into body and extension
    *
