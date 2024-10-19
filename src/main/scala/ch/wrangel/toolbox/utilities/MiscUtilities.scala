@@ -87,8 +87,16 @@ object MiscUtilities extends LogSupport {
     try {
       // Get the name of the dmg
       val dmgSB: StringBuilder = new StringBuilder()
-      println("here")
-      println(dmgSB)
+
+      val url = URI.create(Constants.ExifToolWebsite).toURL()
+      val inputStream: InputStream = url.openStream()
+      val cleaner = new HtmlCleaner()
+      val rootNode: TagNode = cleaner.clean(inputStream)
+      inputStream.close()
+
+      val aElements = rootNode.getElementsByName("a", true)
+      println(aElements)
+
   /*
 
       (new HtmlCleaner).clean(URL(Constants.ExifToolWebsite)).getElementsByName("a", true) // Root node
