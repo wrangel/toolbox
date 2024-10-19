@@ -79,6 +79,7 @@ object MiscUtilities extends LogSupport {
     s"${Constants.ExifToolBaseCommand.split(Constants.BlankSplitter).head.trim} -ver"
   ).getOrElse("-1").toDouble
 
+  /* TODO 
   /** Installs a new or updated version of ExifTool */
   def handleExifTool(): Unit = {
     try {
@@ -121,6 +122,7 @@ object MiscUtilities extends LogSupport {
         warn(s"$ExifToolWebsite is offline")
     }
   }
+  */
 
   /** Send mac to caffeinate mode and thus preventing it from going to sleep mode.
    * Minimize all Terminal windows

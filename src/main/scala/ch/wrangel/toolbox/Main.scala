@@ -13,7 +13,7 @@ object Main extends LogSupport {
       // Prevent mac from going to sleep
 	    // TODO implement MiscUtilities.caffeinate()
       // Install or update ExifTool, if necessary
-      MiscUtilities.handleExifTool()
+      // TODO MiscUtilities.handleExifTool()
       // Handle the ExifTool config file
       FileUtilities.createOrAdaptExifConfigFile()
       // Handle zero bytes files
