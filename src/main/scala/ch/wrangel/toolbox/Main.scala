@@ -8,23 +8,28 @@ import wvlet.log.LogSupport
 /** Command line tool to synchronize photo file names, exif and mac timestamps */
 object Main extends LogSupport {
 	def main(args: Array[String]): Unit = {
-    val relevantParameters = args.slice(0, args.length - 1).toSeq
+    val relevantParameters = args.slice(0, args.length - 1).toSeq // -f etc.
     if (Constants.ParameterSpace.keys.toSeq.contains(relevantParameters)) {
-      // Prevent mac from going to sleep
-	    // TODO implement MiscUtilities.caffeinate()
-      // Install or update ExifTool, if necessary
-      // TODO MiscUtilities.handleExifTool()
-      // Handle the ExifTool config file
       FileUtilities.createOrAdaptExifConfigFile()
       // Handle zero bytes files
       val arguments: Seq[String] = Constants.ParameterSpace(relevantParameters) :+ args.last
       FileUtilities.handleZeroByteLengthFiles(arguments.last)
+
+      
+      Constants.ParameterSpace(relevantParameters).foreach(println)
+      println("...")
+      relevantParameters.foreach(println)
+      println("...")
+      arguments.foreach(println)
+      sys.exit()
+
+
       UseCaseFactory(arguments.head).run(
         arguments.last,
         Try{arguments(1).toBoolean}.getOrElse(false),
         Try{arguments(2).toBoolean}.getOrElse(false)
       )
-    } else 
+    } else
       info(Constants.TextWelcome)
   }
 }
