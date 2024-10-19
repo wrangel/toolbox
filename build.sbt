@@ -2,7 +2,7 @@ scalaVersion := "3.3.3"
 
 name := "timestamptools"
 organization := "ch.wrangel.toolbox"
-version := "2.0"
+version := "2.1"
 
 libraryDependencies ++= Seq(
   "org.wvlet.airframe" %% "airframe-log" % "24.9.3", 
