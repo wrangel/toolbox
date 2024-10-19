@@ -47,3 +47,11 @@ exif.config
 
 # general
 *.class
+
+target/
+.bsp/
+.idea/
+.metals/
+.bloop/
+project/target/
+project/project/
