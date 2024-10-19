@@ -8,173 +8,114 @@ import scala.util.{Failure, Success, Try}
 import wvlet.log.LogSupport
 import scala.collection.parallel.CollectionConverters._
 import scala.jdk.CollectionConverters._
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable.ListBuffer
 
-
-/** Protective object around use case singletons
-  * https://alvinalexander.com/scala/factory-pattern-in-scala-design-patterns/
-  */
 object UseCaseFactory extends LogSupport {
 
-  /* Renames files & changes mac timestamp according to exif timestamps.
-   *
-   * These are either one of the principal timestamps DateTimeOriginal or CreateDate, in which case the timestamp
-   * is taken as-is and applied to file name and mac timestamps.
-   * If no principal timestamp exists for the file, but further exif timestamps ("secondary timestamps") are
-   * available, the user is asked to pick one or none of the timestamps. If some timestamp is chosen,
-   * the file is renamed accordingly, and exif and mac timestamps are rewritten
-   */
   private object ExifAsReference extends UseCase {
+    def run(directory: String,
+            needsRenaming: Boolean,
+            treatExifTimestamps: Boolean): Unit = {
 
-    /** Runs the process
-      *
-      * @param directory     [[String]] representation of directory path
-      * @param needsRenaming Flag indicating whether file should be renamed
-      * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps
+      val treatedFiles = new ConcurrentHashMap[Path, LocalDateTime]()
+      val treatedFiles2 = new ConcurrentHashMap[Path, LocalDateTime]()
 
-      */
-      def run(directory: String,
-              needsRenaming: Boolean,
-              treatExifTimestamps: Boolean): Unit = {
+      FileUtilities
+        .iterateFiles(directory)
+        .foreach { filePath =>
+          val (principalTimestamps, secondaryTimestamps) = TimestampUtilities
+            .readExifTimestamps(filePath)
+            .partition { case (tag, _) => Constants.ReferenceExifTimestamps.contains(tag) }
 
-        val treatedFiles = new ConcurrentHashMap[Path, LocalDateTime]()
-        val treatedFiles2 = new ConcurrentHashMap[Path, LocalDateTime]()
-
-        FileUtilities
-          .iterateFiles(directory)
-          .foreach { filePath =>
-            val (principalTimestamps, secondaryTimestamps) = TimestampUtilities
-              .readExifTimestamps(filePath)
-              .partition { case (tag, _) => Constants.ReferenceExifTimestamps.contains(tag) }
-
-            if (principalTimestamps.nonEmpty && principalTimestamps.forall(_._2.isDefined)) {
-              handlePrincipalTimestamps(principalTimestamps, filePath, needsRenaming)
-                .foreach { case (path, timestamp) => treatedFiles.put(path, timestamp) }
-            } else if (treatExifTimestamps) {
-              handleSecondaryTimestamps(secondaryTimestamps, filePath, needsRenaming)
-                .foreach { case (path, timestamp) => treatedFiles2.put(path, timestamp) }
-            } else {
-              warn(s"======== Omitting $filePath")
-            }
+          if (principalTimestamps.nonEmpty && principalTimestamps.forall(_._2.isDefined)) {
+            handlePrincipalTimestamps(principalTimestamps, filePath, needsRenaming)
+              .foreach { case (path, timestamp) => treatedFiles.put(path, timestamp) }
+          } else if (treatExifTimestamps) {
+            handleSecondaryTimestamps(secondaryTimestamps, filePath, needsRenaming)
+              .foreach { case (path, timestamp) => treatedFiles2.put(path, timestamp) }
+          } else {
+            warn(s"======== Omitting $filePath")
           }
-
-        TimestampUtilities.writeTimestamps(treatedFiles.asScala.toMap)
-        TimestampUtilities.writeTimestamps(treatedFiles2.asScala.toMap)
-        Validate.run(directory, needsRenaming)
-
-        if (treatExifTimestamps) {
-          MiscUtilities.getProcessOutput("""osascript -e 'quit app "Preview"'""")
         }
-      }
 
-    /** Handles principal timestamps
-      *
-      * @param principalTimestamps [[Map]] with exif timestamp ids as keys, and optional [[LocalDateTime]] as values
-      * @param filePath [[Path]] to the file
-      * @param needsRenaming Flag indicating whether to rename the file
-      */
-      private def handlePrincipalTimestamps(
-        principalTimestamps: Map[String, Option[LocalDateTime]],
-        filePath: Path,
-        needsRenaming: Boolean
-    ): Unit = {
-      info("Handling principal timestamps")
-      TimestampUtilities
-        .getExifTimestamps(principalTimestamps)
-        .headOption match {
-        case Some(ldt: LocalDateTime) =>
-          treatedFiles += FileUtilities.prepareFile(filePath,
-                                                    ldt,
-                                                    needsRenaming =
-                                                      needsRenaming)
-        case None =>
+      TimestampUtilities.writeTimestamps(treatedFiles.asScala.toMap)
+      TimestampUtilities.writeTimestamps(treatedFiles2.asScala.toMap)
+      Validate.run(directory, needsRenaming)
+
+      if (treatExifTimestamps) {
+        MiscUtilities.getProcessOutput("""osascript -e 'quit app "Preview"'""")
       }
     }
 
-    /** Handles secondary timestamps
-      *
-      * @param secondaryTimestamps [[Map]] with exif timestamp ids as keys, and optional [[LocalDateTime]] as values
-      * @param filePath [[Path]] to the file
-      * @param needsRenaming Flag indicating whether to rename the file
-      */
+    private def handlePrincipalTimestamps(
+        principalTimestamps: Map[String, Option[LocalDateTime]],
+        filePath: Path,
+        needsRenaming: Boolean
+    ): Seq[(Path, LocalDateTime)] = {
+      info("Handling principal timestamps")
+      TimestampUtilities
+        .getExifTimestamps(principalTimestamps)
+        .headOption
+        .map(ldt => Seq(FileUtilities.prepareFile(filePath, ldt, needsRenaming)))
+        .getOrElse(Seq.empty)
+    }
+
     private def handleSecondaryTimestamps(
         secondaryTimestamps: Map[String, Option[LocalDateTime]],
         filePath: Path,
         needsRenaming: Boolean
-    ): Unit = {
+    ): Seq[(Path, LocalDateTime)] = {
       info("Handling secondary timestamps")
-      MiscUtilities.getProcessOutput(
-        s"""open -a Preview ${filePath.toString}""")
+      MiscUtilities.getProcessOutput(s"""open -a Preview ${filePath.toString}""")
       val candidateTimestamps: Seq[LocalDateTime] =
         TimestampUtilities.getExifTimestamps(secondaryTimestamps).toSeq.sorted
       val options: Seq[(LocalDateTime, Int)] = candidateTimestamps.zipWithIndex
-      if (candidateTimestamps.nonEmpty) {
+      val result = if (candidateTimestamps.nonEmpty) {
         val feedback: String = MiscUtilities
           .getFeedback(
             options.mkString("\n") + "\nNone of those: -\n",
             Constants.NonApplicableKey +: options.map(_._2.toString)
           )
         if (feedback != Constants.NonApplicableKey)
-          treatedFiles2 += FileUtilities.prepareFile(
+          Seq(FileUtilities.prepareFile(
             filePath,
             candidateTimestamps(feedback.toInt),
             needsRenaming = needsRenaming
-          )
-      } else
+          ))
+        else Seq.empty
+      } else {
         warn("No valid timestamps found")
+        Seq.empty
+      }
       MiscUtilities.getProcessOutput(
         """osascript -e 'tell application "Preview" to close first window'""")
+      result
     }
-
   }
 
-  /* Renames files & changes mac & exif timestamp (if desired)
-  according to the valid timestamp detected in the file name
-   */
   private object FileNameAsReference extends UseCase {
-
-    /** Runs the process
-      *
-      * @param directory     [[String]] representation of directory path
-      * @param needsRenaming Flag indicating whether file should be renamed
-      * @param treatExifTimestamps Flag indicating whether to treat exif timestamps
-      */
     def run(directory: String,
             needsRenaming: Boolean,
             treatExifTimestamps: Boolean): Unit = {
+      val treatedFiles = new ConcurrentHashMap[Path, LocalDateTime]()
+      
       TimestampUtilities
         .detectHiddenTimestampsOrDates(directory)
-        .foreach {
-          case (filePath: Path, ldt: LocalDateTime) =>
-            treatedFiles += FileUtilities.prepareFile(filePath,
-                                                      ldt,
-                                                      needsRenaming =
-                                                        needsRenaming)
+        .foreach { case (filePath, ldt) =>
+          treatedFiles.put(filePath, ldt)
         }
-      TimestampUtilities.writeTimestamps(treatedFiles.toMap,
-                                         treatExifTimestamps)
+      
+      TimestampUtilities.writeTimestamps(treatedFiles.asScala.toMap, treatExifTimestamps)
       Validate.run(directory)
     }
-
   }
 
-  /** Checks if all relevant EXIF dates are the same as the file name's timestamp
-    * Only runs with already renamed file names (e.g. containing YYYYMMDD_hhmmss)
-    */
   private object Validate extends UseCase {
-
-    /** Moves files with invalid relevant EXIF timestamps to a specific subfolder
-      *
-      * @param directory     [[String]] representation of directory path
-      * @param needsRenaming Flag indicating whether file should be renamed
-      * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps
-      */
     def run(directory: String,
             needsRenaming: Boolean = false,
             treatExifTimestamps: Boolean = false): Unit = {
-      val treatedFiles = new ConcurrentLinkedQueue[(Path, LocalDateTime)]()
+      val treatedFiles = new ConcurrentHashMap[Path, LocalDateTime]()
 
       FileUtilities
         .iterateFiles(directory)
@@ -195,15 +136,15 @@ object UseCaseFactory extends LogSupport {
                   }
                 }
                 if (exifResults.isEmpty) {
-                  treatedFiles.add((filePath, LocalDateTime.now))
+                  treatedFiles.put(filePath, LocalDateTime.now)
                 }
               case None =>
                 warn(s"File timestamp contains no valid timestamp")
-                treatedFiles.add((filePath, LocalDateTime.now))
+                treatedFiles.put(filePath, LocalDateTime.now)
             }
           } else {
             warn(s"File is a remnant exiftool temp file")
-            treatedFiles.add((filePath, LocalDateTime.now))
+            treatedFiles.put(filePath, LocalDateTime.now)
           }
         }
 
@@ -294,15 +235,10 @@ object UseCaseFactory extends LogSupport {
     * @param useCase Applicable use case
     * @return Use case singleton
     */
-  def apply(useCase: String): UseCase = {
-    useCase match {
-      case "exif" =>
-        ExifAsReference
-      case "file" =>
-        FileNameAsReference
-      case "validate" =>
-        Validate
+  def apply(useCase: String): UseCase = useCase match {
+      case "e" => ExifAsReference
+      case "f" => FileNameAsReference
+      case "v" => Validate
+      case _ => throw new IllegalArgumentException(s"Unknown use case: $useCase")
     }
-  }
-
 }
