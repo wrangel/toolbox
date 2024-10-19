@@ -5,6 +5,7 @@ import java.nio.file.{Files, Path}
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, LocalTime, YearMonth, ZonedDateTime}
 import scala.collection.mutable.ListBuffer
+import scala.collection.parallel.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 import wvlet.log.LogSupport
 
@@ -169,17 +170,17 @@ object TimestampUtilities extends LogSupport {
   def identifyCandidates(directory: String): Map[Path, String] = {
     FileUtilities
       .iterateFiles(directory)
-      .map { 
-        (filePath: Path) =>
-          filePath -> {
-            val rawSeq: Seq[String] = Constants.TimestampAndDatePatterns
-              .map(_.findFirstIn(filePath.getFileName.toString).getOrElse(""))
-            rawSeq
-              .maxBy(_.length)
-              .replaceAll("[^0-9]", "")
-          }
+      .map { filePath =>
+        filePath -> {
+          val rawSeq = Constants.TimestampAndDatePatterns
+            .map(_.findFirstIn(filePath.getFileName.toString).getOrElse(""))
+          rawSeq
+            .maxBy(_.length)
+            .replaceAll("[^0-9]", "")
+        }
       }
       .filter(_._2.nonEmpty)
+      .seq
       .toMap
   }
 
