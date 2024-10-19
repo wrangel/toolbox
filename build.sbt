@@ -2,7 +2,7 @@ scalaVersion := "3.3.3"
 
 name := "timestamptools"
 organization := "ch.wrangel.toolbox"
-version := "2.1"
+version := "3.0"
 
 libraryDependencies ++= Seq(
   "net.sourceforge.htmlcleaner" % "htmlcleaner" % "2.29",
