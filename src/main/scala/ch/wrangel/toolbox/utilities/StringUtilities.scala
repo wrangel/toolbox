@@ -1,3 +1,4 @@
+// utilities.StringUtilities.scala
 package ch.wrangel.toolbox.utilities
 
 /* Utilities for [[String]] manipulation */

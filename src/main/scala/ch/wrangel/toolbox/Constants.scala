@@ -1,3 +1,4 @@
+// Constants.scala
 package ch.wrangel.toolbox
 
 import java.nio.file.{Path, Paths}
