@@ -14,7 +14,10 @@ import scala.io.{BufferedSource, Source}
 import scala.jdk.CollectionConverters._
 import scala.jdk.StreamConverters._
 import scala.util.control.NonFatal
+import scala.util.{Try, Success, Failure}
+import scala.sys.process._
 import wvlet.log.LogSupport
+
 
 /*Utilities for file manipulation */
 object FileUtilities extends LogSupport {
@@ -169,47 +172,4 @@ object FileUtilities extends LogSupport {
     }
   }
 
-  /** Attaches and mounts image, executes the pkg installer, and eventually cleans up all resources
-   *
-   * @param downloadPath String representation of path to downloaded file
-   * @param dmg Name of the dmg image
-   */
-  def handleImage(downloadPath: String, dmg: String): Unit = {
-    val attachedImage: String = getProcessOutput(
-      s"${Constants.HdiUtilIdentifier} attach $downloadPath"
-    ).get.split("\n")
-      .filter(_.contains(dmg)).head
-      .split(Constants.BlankSplitter).head
-      .trim
-    Thread.sleep(1000)
-    val mountedImage: String = getProcessOutput(
-      s"${Constants.HdiUtilIdentifier} mount $attachedImage"
-    ).getOrElse("").split(Constants.BlankSplitter).last.trim
-    val mountVolumeContents: String = getProcessOutput(s"ls $mountedImage").head
-    val pkgName: String = Paths.get("/Volumes/", dmg, mountVolumeContents).toString
-    MiscUtilities.getProcessOutput(
-      s"""osascript -e 'do shell script "installer -pkg $pkgName -target /" with administrator privileges'"""
-    )
-
-
-    cleanUp(attachedImage, mountedImage, downloadPath)
-
-
-  }
-
-  /** Cleans up download, and unmounts disk images and volumes
-   *
-   * @param attachedImage String Name of the attached image
-   * @param mountedImage String Name of the mounted image
-   * @param downloadPath String representation of path to downloaded file
-   */
-  def cleanUp(attachedImage: String, mountedImage: String, downloadPath: String): Unit = {
-    /*
-    Seq(attachedImage, mountedImage).foreach {
-      (img: String) =>
-        getProcessOutput(s"${Constants.HdiUtilIdentifier} unmount $img")
-    }
-     */
-    getProcessOutput(s"rm $downloadPath")
-  }
 }

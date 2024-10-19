@@ -118,15 +118,12 @@ object MiscUtilities extends LogSupport {
           if (presentVersion < newestVersion) {
             val pkgName = s"ExifTool-$version.pkg"
             val downloadPath = Paths.get(Constants.DownloadFolder, pkgName).toString
+
             Try {
               FileUtilities.download(s"${Constants.ExifToolWebsite}/$pkgName", downloadPath)
             } match {
               case Success(_) =>
-                FileUtilities.handleImage(downloadPath, pkgName)
-                if (getPresentExifToolVersion == newestVersion)
-                  info(s"Newest ExifTool version ($newestVersion) is now installed")
-                else
-                  warn(s"Newest ExifTool version ($newestVersion) could not be installed")
+                info(s"Newest ExifTool version ($newestVersion) is now downloaded")
               case Failure(e) =>
                 error(s"Failed to download ExifTool: ${e.getMessage}")
             }
@@ -145,6 +142,5 @@ object MiscUtilities extends LogSupport {
         error(s"Unexpected error: ${e.getMessage}")
     }
   }
-
 
 }
