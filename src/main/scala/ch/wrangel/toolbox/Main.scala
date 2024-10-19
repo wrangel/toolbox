@@ -14,6 +14,13 @@ object Main extends LogSupport {
       // Handle zero bytes files
       val arguments: Seq[String] = Constants.ParameterSpace(relevantParameters) :+ args.last
       FileUtilities.handleZeroByteLengthFiles(arguments.last)
+      // Install or update ExifTool, if necessary
+      MiscUtilities.handleExifTool()
+
+      sys.exit()
+
+
+      
       UseCaseFactory(arguments.head).run(
         arguments.last,
         Try{arguments(1).toBoolean}.getOrElse(false),
