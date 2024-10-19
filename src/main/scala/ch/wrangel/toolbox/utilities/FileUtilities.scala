@@ -113,17 +113,17 @@ object FileUtilities extends LogSupport {
     * @param directory [[String]] representation of directory path
     */
   def handleZeroByteLengthFiles(directory: String): Unit = {
-    val zeroByteFiles: ListBuffer[Path] = ListBuffer()
-    FileUtilities
+    val zeroByteFiles = FileUtilities
       .iterateFiles(directory)
-      .foreach { 
-        (filePath: Path) =>
-          if (Files.size(filePath) == 0) {
-            warn(s"$filePath byte size is 0")
-            zeroByteFiles += filePath
-          }
+      .filter(Files.size(_) == 0)
+      .map { filePath =>
+        warn(s"$filePath byte size is 0")
+        filePath
       }
-    FileUtilities.moveFiles(zeroByteFiles,
+      .seq
+      .toList
+
+    FileUtilities.moveFiles(ListBuffer(zeroByteFiles: _*),
                             Paths.get(directory, Constants.ZeroByteFolder))
   }
 

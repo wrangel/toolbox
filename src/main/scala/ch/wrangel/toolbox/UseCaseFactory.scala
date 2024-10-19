@@ -5,6 +5,9 @@ import java.nio.file.{Path, Paths}
 import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 import wvlet.log.LogSupport
+import scala.collection.parallel.CollectionConverters._
+import scala.jdk.CollectionConverters._
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /** Protective object around use case singletons
   * https://alvinalexander.com/scala/factory-pattern-in-scala-design-patterns/
@@ -28,44 +31,39 @@ object UseCaseFactory extends LogSupport {
       * @param treatExifTimestamps Flag indicating whether to treat secondary timestamps
 
       */
-    def run(directory: String,
-            needsRenaming: Boolean,
-            treatExifTimestamps: Boolean): Unit = {
+      def run(directory: String,
+              needsRenaming: Boolean,
+              treatExifTimestamps: Boolean): Unit = {
 
-      FileUtilities
-        .iterateFiles(directory)
-        .foreach {
-            (filePath: Path) =>
-              val (
-                principalTimestamps: Map[String, Option[LocalDateTime]],
-                secondaryTimestamps: Map[String, Option[LocalDateTime]]
-              ) = TimestampUtilities
-                .readExifTimestamps(filePath)
-                .partition {
-                  case (tag: String, _: Option[LocalDateTime]) =>
-                    Constants.ReferenceExifTimestamps
-                      .contains(tag)
-                }
-              if (principalTimestamps.nonEmpty & principalTimestamps.forall {
-                    _._2.isDefined
-                  })
-                handlePrincipalTimestamps(principalTimestamps,
-                                          filePath,
-                                          needsRenaming)
-              else if (treatExifTimestamps)
-                handleSecondaryTimestamps(secondaryTimestamps,
-                                          filePath,
-                                          needsRenaming)
-              else
-                warn(s"======== Omitting $filePath")
+        val treatedFiles = new ConcurrentHashMap[Path, LocalDateTime]()
+        val treatedFiles2 = new ConcurrentHashMap[Path, LocalDateTime]()
+
+        FileUtilities
+          .iterateFiles(directory)
+          .foreach { filePath =>
+            val (principalTimestamps, secondaryTimestamps) = TimestampUtilities
+              .readExifTimestamps(filePath)
+              .partition { case (tag, _) => Constants.ReferenceExifTimestamps.contains(tag) }
+
+            if (principalTimestamps.nonEmpty && principalTimestamps.forall(_._2.isDefined)) {
+              handlePrincipalTimestamps(principalTimestamps, filePath, needsRenaming)
+                .foreach { case (path, timestamp) => treatedFiles.put(path, timestamp) }
+            } else if (treatExifTimestamps) {
+              handleSecondaryTimestamps(secondaryTimestamps, filePath, needsRenaming)
+                .foreach { case (path, timestamp) => treatedFiles2.put(path, timestamp) }
+            } else {
+              warn(s"======== Omitting $filePath")
+            }
+          }
+
+        TimestampUtilities.writeTimestamps(treatedFiles.asScala.toMap)
+        TimestampUtilities.writeTimestamps(treatedFiles2.asScala.toMap)
+        Validate.run(directory, needsRenaming)
+
+        if (treatExifTimestamps) {
+          MiscUtilities.getProcessOutput("""osascript -e 'quit app "Preview"'""")
         }
-      TimestampUtilities.writeTimestamps(treatedFiles.toMap)
-      TimestampUtilities.writeTimestamps(treatedFiles2.toMap)
-      Validate.run(directory, needsRenaming)
-
-      if (treatExifTimestamps)
-        MiscUtilities.getProcessOutput("""osascript -e 'quit app "Preview"'""")
-    }
+      }
 
     /** Handles principal timestamps
       *
@@ -171,52 +169,42 @@ object UseCaseFactory extends LogSupport {
       */
     def run(directory: String,
             needsRenaming: Boolean = false,
-            treatExifTimestamps: Boolean = false,
-    ): Unit = {
+            treatExifTimestamps: Boolean = false): Unit = {
+      val treatedFiles = new ConcurrentLinkedQueue[(Path, LocalDateTime)]()
+
       FileUtilities
         .iterateFiles(directory)
-        .foreach { 
-          (filePath: Path) =>
-            info(s"======== Validating $filePath")
-            // 0) Check if file is not an exiftool temp file
-            if (Constants.isNotExiftoolTmpFile(filePath.getFileName.toString)) {
-              // 1) Check if file has valid timestamp
-              checkFileTimestamp(filePath: Path) match {
-                case Some(filenameTimestamp: LocalDateTime) =>
-                  // Check for each relevant exif timestamp
-                  Constants.ReferenceExifTimestamps
-                    .foreach { 
-                      (tag: String) =>
-                        // 2) Check if shell command returns valid stdout
-                        checkValidity(filePath, tag) match {
-                          case Some(element: Array[String]) =>
-                            // 3) Check if String exif timestamp can be converted to a real timestamp
-                            convertExifTimestamp(element) match {
-                              case Some(exifTimestamp: LocalDateTime) =>
-                                compareTimestamps(filePath,
-                                                  filenameTimestamp,
-                                                  exifTimestamp,
-                                                  tag)
-                              case None =>
-                                warn(s"$tag cannot be converted properly")
-                                treatedFiles += ((filePath, LocalDateTime.now))
-                            }
-                          case None =>
-                            warn(s"Shell command returns no valid output")
-                            treatedFiles += ((filePath, LocalDateTime.now))
-                        }
+        .foreach { filePath =>
+          info(s"======== Validating $filePath")
+          if (Constants.isNotExiftoolTmpFile(filePath.getFileName.toString)) {
+            checkFileTimestamp(filePath) match {
+              case Some(filenameTimestamp) =>
+                val exifResults = Constants.ReferenceExifTimestamps.par.flatMap { tag =>
+                  checkValidity(filePath, tag).flatMap { element =>
+                    convertExifTimestamp(element) match {
+                      case Some(exifTimestamp) =>
+                        Some(compareTimestamps(filePath, filenameTimestamp, exifTimestamp, tag))
+                      case None =>
+                        warn(s"$tag cannot be converted properly")
+                        None
                     }
-                case None =>
-                  warn(s"File timestamp contains no valid timestamp")
-                  treatedFiles += ((filePath, LocalDateTime.now))
-              }
-            } else {
-              warn(s"File is a remnant exiftool temp file")
-              treatedFiles += ((filePath, LocalDateTime.now))
+                  }
+                }
+                if (exifResults.isEmpty) {
+                  treatedFiles.add((filePath, LocalDateTime.now))
+                }
+              case None =>
+                warn(s"File timestamp contains no valid timestamp")
+                treatedFiles.add((filePath, LocalDateTime.now))
             }
+          } else {
+            warn(s"File is a remnant exiftool temp file")
+            treatedFiles.add((filePath, LocalDateTime.now))
+          }
         }
+
       FileUtilities.moveFiles(
-        treatedFiles.map(_._1),
+        ListBuffer(treatedFiles.asScala.map(_._1).toSeq: _*),
         Paths.get(directory, Constants.UnsuccessfulFolder)
       )
     }
