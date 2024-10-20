@@ -16,10 +16,6 @@ object Main extends LogSupport {
       FileUtilities.handleZeroByteLengthFiles(arguments.last)
       // Install or update ExifTool, if necessary
       MiscUtilities.handleExifTool()
-
-      sys.exit()
-
-
       
       UseCaseFactory(arguments.head).run(
         arguments.last,
